@@ -1,0 +1,35 @@
+# ATS org map. One list per source. The slug is whatever that ATS calls the org
+# in its board URL, which is where the quirks live: it is rarely the company name.
+# Wealth.com is "wealth-com", Gong is "gongio", Telnyx is "telnyx54".
+#
+# Find a slug by opening the company careers page and reading the board URL, or
+# guess and probe both ATSs at once:  uv run engine check-org <slug>
+#
+# Every slug below was verified live on 2026-07-16.
+
+ashby:
+  - { slug: wealth-com, company: Wealth.com }
+  - { slug: manifest-os, company: Manifest }
+  - { slug: parabola-io, company: Parabola }
+  - { slug: xbowcareers, company: XBOW }
+  - { slug: openai, company: OpenAI }
+  # Filed as dead on 2026-07-16, reported 404 on both ATSs. That was half right:
+  # it 404s on Greenhouse, but the same slug serves 48 live jobs on Ashby. The
+  # org did not vanish, it moved, and the slug came with it. Found by running
+  # check-org against it on 2026-07-17, which is the entire reason check-org
+  # probes both ATSs instead of trusting the list.
+  - { slug: chainalysis-careers, company: Chainalysis }
+
+greenhouse:
+  - { slug: gongio, company: Gong }
+  - { slug: telnyx54, company: Telnyx }
+
+# Orgs whose board has gone missing on every ATS we know how to read. Kept here
+# so they are neither silently forgotten nor re-probed on every run. Rediscover
+# with check-org, then move the entry back up into its source list.
+#
+# dead:
+#   - slug: some-org
+#     company: Some Org
+#     note: 404 everywhere as of YYYY-MM-DD. Rediscover.
+dead: []

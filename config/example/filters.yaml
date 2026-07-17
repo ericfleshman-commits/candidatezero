@@ -1,0 +1,49 @@
+# Filter rules. The engine has no hardcoded taste: everything it keeps or drops
+# is decided by this file. Copy it to config/private/filters.yaml and edit that
+# copy. The private one wins when it exists, per file.
+#
+# Evaluation order is title, then location, then comp. Cheap checks first, and on
+# Greenhouse the expensive per-role detail fetch only happens for roles that have
+# already survived title and location.
+
+title_families:
+  # Substring match against the normalized title. Normalization lowercases,
+  # collapses "go to market" and "go-to-market" to "gtm", and strips punctuation,
+  # so "Go-To-Market Engineer" matches "gtm engineer".
+  include:
+    - gtm engineer
+    - gtm engineering
+    - go-to-market engineer
+    - gtm systems
+    - revops engineer
+    - revenue operations engineer
+    - revops architect
+    - revenue operations architect
+    - ai gtm
+    - gtm ai
+    - revenue systems
+  # Adjacent families worth seeing but not worth trusting. These are surfaced in
+  # the Flagged section and are never auto-dropped.
+  flag:
+    - growth engineer
+
+location:
+  # A role passes on location if it is NYC or acceptable remote.
+  nyc_tokens: [new york, nyc, brooklyn, manhattan]
+  allow_remote_us: true
+  # Remote qualified by a non-US region is not remote for this candidate.
+  # Unqualified "Remote" passes in v0.
+  remote_exclude_regions: [emea, europe, apac, uk, canada, latam, india]
+  # Optional escape hatch: a role that fails location is kept and flagged rather
+  # than dropped when the top of its band clears this number. Money moves people.
+  # Remove the key to disable the exception entirely.
+  kill_exception_comp_usd: 200000
+
+comp:
+  # Pass if comp_max is at or above the floor.
+  #   comp_min at or above floor  : clean pass
+  #   only comp_max clears        : kept, flagged band-top-only
+  #   no comp published           : kept, flagged comp-unknown
+  # Unknown comp is a flag and not a failure. The NYC pay transparency law means
+  # most target roles post a band, so a missing band is a question, not a no.
+  floor_usd: 160000

@@ -1,0 +1,21 @@
+# Application history. SCHEMA EXAMPLE ONLY. The company names below are invented.
+# The real file lives at config/private/history.yaml and is gitignored, because
+# where you applied and who rejected you is nobody's business but yours.
+#
+# Night 1 does not read this file. It exists now so the shape is fixed before the
+# dedupe pass is built on top of it. Ground truth for these lists is the
+# confirmation mail in your inbox, exported by hand for now.
+
+# Already applied. Suppressed from the digest so the same role does not resurface.
+applied: [Acme Systems, Northwind Labs, Contoso Data]
+
+# Live conversations. Kept visible: a second role at a company already talking to
+# you is a signal, not noise.
+interviewing: [Initech]
+
+# Passed on you, or you passed on them. Suppressed.
+rejected: [Globex, Umbrella Analytics]
+
+# Never show me this company again, at any title, for any money. Hardest rule in
+# the engine and the only one that outranks comp.
+blacklist_companies: [Globex]

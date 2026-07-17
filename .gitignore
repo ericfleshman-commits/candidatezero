@@ -1,0 +1,27 @@
+# Privacy firewall. This file is the first commit in the repo for a reason.
+# Nothing under these paths is ever published. A guard test in
+# tests/test_public_hygiene.py enforces this for the life of the repo.
+
+# Real config: org lists, filters, application history.
+config/private/
+
+# Runtime output: digests, seen-store.
+data/
+
+# Secrets.
+.env
+
+# Overnight run harness and its logs. Local operator tooling, not repo content.
+logs/
+done/
+sprints/
+overnight.sh
+kickoff.sh
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/

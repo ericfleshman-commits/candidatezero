@@ -27,3 +27,6 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 .ruff_cache/
+
+# Critic-sprint staging for the agy engine. Same rule as sprints/.
+sprints-agy/

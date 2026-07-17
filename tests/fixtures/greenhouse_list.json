@@ -1,0 +1,157 @@
+{
+ "jobs": [
+  {
+   "absolute_url": "https://job-boards.greenhouse.io/gongio/jobs/4679941006",
+   "data_compliance": [
+    {
+     "type": "gdpr",
+     "requires_consent": false,
+     "requires_processing_consent": false,
+     "requires_retention_consent": false,
+     "retention_period": null,
+     "demographic_data_consent_applies": false
+    }
+   ],
+   "internal_job_id": 4540268006,
+   "location": {
+    "name": "Austin | Chicago | New York City | Salt Lake City | San Francisco"
+   },
+   "metadata": [
+    {
+     "id": 16593235006,
+     "name": "Job Level",
+     "value": null,
+     "value_type": "single_select"
+    },
+    {
+     "id": 4372012006,
+     "name": "Time Type",
+     "value": null,
+     "value_type": "single_select"
+    },
+    {
+     "id": 6928452006,
+     "name": "Cost Center Hierarchy",
+     "value": null,
+     "value_type": "short_text"
+    },
+    {
+     "id": 9218330006,
+     "name": "Segment",
+     "value": null,
+     "value_type": "single_select"
+    }
+   ],
+   "id": 4679941006,
+   "updated_at": "2026-07-16T14:44:23-04:00",
+   "requisition_id": "77",
+   "title": "Commercial Revenue Architect",
+   "company_name": "Gong.io",
+   "first_published": "2026-05-07T14:53:31-04:00",
+   "language": "en",
+   "application_deadline": null
+  },
+  {
+   "absolute_url": "https://job-boards.greenhouse.io/gongio/jobs/4678879006",
+   "data_compliance": [
+    {
+     "type": "gdpr",
+     "requires_consent": false,
+     "requires_processing_consent": false,
+     "requires_retention_consent": false,
+     "retention_period": null,
+     "demographic_data_consent_applies": false
+    }
+   ],
+   "internal_job_id": 4546390006,
+   "location": {
+    "name": "Remote (US)"
+   },
+   "metadata": [
+    {
+     "id": 16593235006,
+     "name": "Job Level",
+     "value": "30",
+     "value_type": "single_select"
+    },
+    {
+     "id": 4372012006,
+     "name": "Time Type",
+     "value": "Full time",
+     "value_type": "single_select"
+    },
+    {
+     "id": 6928452006,
+     "name": "Cost Center Hierarchy",
+     "value": "COGS",
+     "value_type": "short_text"
+    },
+    {
+     "id": 9218330006,
+     "name": "Segment",
+     "value": null,
+     "value_type": "single_select"
+    }
+   ],
+   "id": 4678879006,
+   "updated_at": "2026-07-06T13:12:14-04:00",
+   "requisition_id": "JR102762",
+   "title": "Enterprise Growth Revenue Architect",
+   "company_name": "Gong.io",
+   "first_published": "2026-05-22T11:45:17-04:00",
+   "language": "en",
+   "application_deadline": null
+  },
+  {
+   "absolute_url": "https://job-boards.greenhouse.io/gongio/jobs/4679941006",
+   "data_compliance": [
+    {
+     "type": "gdpr",
+     "requires_consent": false,
+     "requires_processing_consent": false,
+     "requires_retention_consent": false,
+     "retention_period": null,
+     "demographic_data_consent_applies": false
+    }
+   ],
+   "internal_job_id": 4540268006,
+   "location": {
+    "name": "Dublin"
+   },
+   "metadata": [
+    {
+     "id": 16593235006,
+     "name": "Job Level",
+     "value": null,
+     "value_type": "single_select"
+    },
+    {
+     "id": 4372012006,
+     "name": "Time Type",
+     "value": null,
+     "value_type": "single_select"
+    },
+    {
+     "id": 6928452006,
+     "name": "Cost Center Hierarchy",
+     "value": null,
+     "value_type": "short_text"
+    },
+    {
+     "id": 9218330006,
+     "name": "Segment",
+     "value": null,
+     "value_type": "single_select"
+    }
+   ],
+   "id": 999000111,
+   "updated_at": "2026-07-16T14:44:23-04:00",
+   "requisition_id": "77",
+   "title": "Backend Engineer",
+   "company_name": "Gong.io",
+   "first_published": "2026-05-07T14:53:31-04:00",
+   "language": "en",
+   "application_deadline": null
+  }
+ ]
+}

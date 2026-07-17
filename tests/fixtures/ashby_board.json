@@ -1,0 +1,347 @@
+{
+ "apiVersion": "1",
+ "jobs": [
+  {
+   "id": "c46c1464-d1e3-4fb7-9ace-7f1b9b65774c",
+   "title": "GTM Engineer",
+   "department": "Growth",
+   "team": "Sales",
+   "employmentType": "FullTime",
+   "location": "Phoenix, AZ",
+   "shouldDisplayCompensationOnJobPostings": true,
+   "secondaryLocations": [],
+   "publishedAt": "2026-06-16T12:54:20.624+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Remote",
+   "address": {
+    "postalAddress": {
+     "addressRegion": "Arizona",
+     "addressCountry": "United States",
+     "addressLocality": "Phoenix"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/wealth-com/c46c1464-d1e3-4fb7-9ace-7f1b9b65774c",
+   "applyUrl": "https://jobs.ashbyhq.com/wealth-com/c46c1464-d1e3-4fb7-9ace-7f1b9b65774c/application",
+   "descriptionHtml": "<p style=\"min-height:1.5em\"><a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"http://Wealth.com\">Wealth.com</a> is the industry\u2019s leading AI Wealth Management platform, [trimmed for fixture]",
+   "descriptionPlain": "Wealth.com http://Wealth.com is the industry\u2019s leading AI Wealth Management platform, empowering financial advisors to offer modern, comprehensive estate planning solutions to [trimmed for fixture]",
+   "compensation": {
+    "compensationTierSummary": "$130K - $180K \u2022 Offers Equity",
+    "scrapeableCompensationSalarySummary": "$130K - $180K",
+    "compensationTiers": [
+     {
+      "id": "caf093e5-5476-4202-94e1-c78912f24749",
+      "tierSummary": "Salary $130K - $180K \u2022 Offers Equity",
+      "title": null,
+      "additionalInformation": null,
+      "components": [
+       {
+        "id": "74ff9e1d-6c72-4ad6-a008-9d02dd18c069",
+        "summary": "Salary $130K - $180K",
+        "compensationType": "Salary",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": 130000,
+        "maxValue": 180000
+       },
+       {
+        "id": "92a5af61-dae8-4699-8b37-61b1fdff8ddb",
+        "summary": "Offers Equity",
+        "compensationType": "EquityPercentage",
+        "interval": "NONE",
+        "currencyCode": null,
+        "minValue": null,
+        "maxValue": null
+       }
+      ]
+     }
+    ],
+    "summaryComponents": [
+     {
+      "compensationType": "Salary",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": 130000,
+      "maxValue": 180000
+     },
+     {
+      "compensationType": "EquityPercentage",
+      "interval": "NONE",
+      "currencyCode": null,
+      "minValue": null,
+      "maxValue": null
+     }
+    ]
+   }
+  },
+  {
+   "id": "fcd184e8-d7c9-4c58-b5f5-56b7ee5c80ac",
+   "title": "Technical Support Associate",
+   "department": "Product",
+   "team": "Product",
+   "employmentType": "FullTime",
+   "location": "Remote, United States",
+   "shouldDisplayCompensationOnJobPostings": true,
+   "secondaryLocations": [],
+   "publishedAt": "2025-10-02T21:20:20.200+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Remote",
+   "address": {
+    "postalAddress": {
+     "addressCountry": "United States"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/wealth-com/fcd184e8-d7c9-4c58-b5f5-56b7ee5c80ac",
+   "applyUrl": "https://jobs.ashbyhq.com/wealth-com/fcd184e8-d7c9-4c58-b5f5-56b7ee5c80ac/application",
+   "descriptionHtml": "<p style=\"min-height:1.5em\"><strong>About </strong><a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"http://Wealth.com\"><strong>Wealth.com</strong></a></p><p [trimmed for fixture]",
+   "descriptionPlain": "About Wealth.com http://Wealth.com\n\nWealth.com http://Wealth.com is the industry\u2019s leading AI Wealth Management platform, empowering financial advisors to offer modern, [trimmed for fixture]",
+   "compensation": {
+    "compensationTierSummary": "$30 - $38 per hour \u2022 Offers Equity",
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [
+     {
+      "id": "73ebe12c-2757-478d-b8ab-6e23da89cc71",
+      "tierSummary": "Full-Time Non Exempt Hourly $30 - $38 per hour \u2022 Offers Equity",
+      "title": null,
+      "additionalInformation": null,
+      "components": [
+       {
+        "id": "2f442c40-0881-4c29-8c0b-ce67621989bf",
+        "summary": "Offers Equity",
+        "compensationType": "EquityPercentage",
+        "interval": "NONE",
+        "currencyCode": null,
+        "minValue": null,
+        "maxValue": null
+       },
+       {
+        "id": "27ec11e0-c4e9-44aa-bb1b-eb96e49b57c0",
+        "summary": "Full-Time Non Exempt Hourly $30 - $38 per hour",
+        "compensationType": "Salary",
+        "interval": "1 HOUR",
+        "currencyCode": "USD",
+        "minValue": 30,
+        "maxValue": 38
+       }
+      ]
+     }
+    ],
+    "summaryComponents": [
+     {
+      "compensationType": "EquityPercentage",
+      "interval": "NONE",
+      "currencyCode": null,
+      "minValue": null,
+      "maxValue": null
+     },
+     {
+      "compensationType": "Salary",
+      "interval": "1 HOUR",
+      "currencyCode": "USD",
+      "minValue": 30,
+      "maxValue": 38
+     }
+    ]
+   }
+  },
+  {
+   "id": "2cba0d45-7a4f-4f38-ac73-3f8633bf0349",
+   "title": "Software Engineer, Developer Productivity",
+   "department": "Applied AI",
+   "team": "Applied AI Infrastructure",
+   "employmentType": "FullTime",
+   "location": "San Francisco",
+   "shouldDisplayCompensationOnJobPostings": true,
+   "secondaryLocations": [
+    {
+     "location": "New York City",
+     "address": {
+      "postalAddress": {
+       "addressRegion": "New York",
+       "addressCountry": "United States",
+       "addressLocality": "New York"
+      }
+     }
+    },
+    {
+     "location": "Seattle",
+     "address": {
+      "postalAddress": {
+       "addressRegion": "Washington",
+       "addressCountry": "United States",
+       "addressLocality": "Seattle"
+      }
+     }
+    }
+   ],
+   "publishedAt": "2025-03-27T16:44:10.676+00:00",
+   "isListed": true,
+   "isRemote": null,
+   "workplaceType": null,
+   "address": {
+    "postalAddress": {
+     "addressRegion": "California",
+     "addressCountry": "United States",
+     "addressLocality": "San Francisco"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/openai/2cba0d45-7a4f-4f38-ac73-3f8633bf0349",
+   "applyUrl": "https://jobs.ashbyhq.com/openai/2cba0d45-7a4f-4f38-ac73-3f8633bf0349/application",
+   "descriptionHtml": "<p style=\"min-height:1.5em\"><strong>About the Team</strong></p><p style=\"min-height:1.5em\">The Applied AI team safely brings OpenAI's technology to the world. We released ChatGPT, [trimmed for fixture]",
+   "descriptionPlain": "About the Team\n\nThe Applied AI team safely brings OpenAI's technology to the world. We released ChatGPT, Plugins, DALL\u00b7E, and the APIs for GPT-4, GPT-3, embeddings, and [trimmed for fixture]",
+   "compensation": {
+    "compensationTierSummary": "$210K - $490K \u2022 Offers Equity",
+    "scrapeableCompensationSalarySummary": "$210K - $490K",
+    "compensationTiers": [
+     {
+      "id": "137d09e9-58c7-4a04-b524-fe1c965891a3",
+      "tierSummary": "$210K - $490K \u2022 Offers Equity",
+      "title": null,
+      "additionalInformation": null,
+      "components": [
+       {
+        "id": "1f7ca928-b6e1-45c5-b090-e90b4242e083",
+        "summary": "Offers Equity",
+        "compensationType": "EquityCashValue",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": null,
+        "maxValue": null
+       },
+       {
+        "id": "2e9b66f1-a060-489d-a0ed-a3f93915511d",
+        "summary": "$210K - $490K",
+        "compensationType": "Salary",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": 210000,
+        "maxValue": 490000
+       }
+      ]
+     }
+    ],
+    "summaryComponents": [
+     {
+      "compensationType": "EquityCashValue",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": null,
+      "maxValue": null
+     },
+     {
+      "compensationType": "Salary",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": 210000,
+      "maxValue": 490000
+     }
+    ]
+   }
+  },
+  {
+   "id": "unlisted-draft-0001",
+   "title": "GTM Engineer (Draft, Unlisted)",
+   "department": "Growth",
+   "team": "Sales",
+   "employmentType": "FullTime",
+   "location": "Phoenix, AZ",
+   "shouldDisplayCompensationOnJobPostings": true,
+   "secondaryLocations": [],
+   "publishedAt": "2026-06-16T12:54:20.624+00:00",
+   "isListed": false,
+   "isRemote": true,
+   "workplaceType": "Remote",
+   "address": {
+    "postalAddress": {
+     "addressRegion": "Arizona",
+     "addressCountry": "United States",
+     "addressLocality": "Phoenix"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/wealth-com/c46c1464-d1e3-4fb7-9ace-7f1b9b65774c",
+   "applyUrl": "https://jobs.ashbyhq.com/wealth-com/c46c1464-d1e3-4fb7-9ace-7f1b9b65774c/application",
+   "descriptionHtml": "<p style=\"min-height:1.5em\"><a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"http://Wealth.com\">Wealth.com</a> is the industry\u2019s leading AI Wealth Management platform, [trimmed for fixture]",
+   "descriptionPlain": "Wealth.com http://Wealth.com is the industry\u2019s leading AI Wealth Management platform, empowering financial advisors to offer modern, comprehensive estate planning solutions to [trimmed for fixture]",
+   "compensation": {
+    "compensationTierSummary": "$130K - $180K \u2022 Offers Equity",
+    "scrapeableCompensationSalarySummary": "$130K - $180K",
+    "compensationTiers": [
+     {
+      "id": "caf093e5-5476-4202-94e1-c78912f24749",
+      "tierSummary": "Salary $130K - $180K \u2022 Offers Equity",
+      "title": null,
+      "additionalInformation": null,
+      "components": [
+       {
+        "id": "74ff9e1d-6c72-4ad6-a008-9d02dd18c069",
+        "summary": "Salary $130K - $180K",
+        "compensationType": "Salary",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": 130000,
+        "maxValue": 180000
+       },
+       {
+        "id": "92a5af61-dae8-4699-8b37-61b1fdff8ddb",
+        "summary": "Offers Equity",
+        "compensationType": "EquityPercentage",
+        "interval": "NONE",
+        "currencyCode": null,
+        "minValue": null,
+        "maxValue": null
+       }
+      ]
+     }
+    ],
+    "summaryComponents": [
+     {
+      "compensationType": "Salary",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": 130000,
+      "maxValue": 180000
+     },
+     {
+      "compensationType": "EquityPercentage",
+      "interval": "NONE",
+      "currencyCode": null,
+      "minValue": null,
+      "maxValue": null
+     }
+    ]
+   }
+  },
+  {
+   "id": "nocomp-0002",
+   "title": "Revenue Systems Engineer",
+   "department": "Growth",
+   "team": "Sales",
+   "employmentType": "FullTime",
+   "location": "New York City",
+   "shouldDisplayCompensationOnJobPostings": true,
+   "secondaryLocations": [],
+   "publishedAt": "2026-06-16T12:54:20.624+00:00",
+   "isListed": true,
+   "isRemote": false,
+   "workplaceType": "Remote",
+   "address": {
+    "postalAddress": {
+     "addressRegion": "Arizona",
+     "addressCountry": "United States",
+     "addressLocality": "Phoenix"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/wealth-com/c46c1464-d1e3-4fb7-9ace-7f1b9b65774c",
+   "applyUrl": "https://jobs.ashbyhq.com/wealth-com/c46c1464-d1e3-4fb7-9ace-7f1b9b65774c/application",
+   "descriptionHtml": "<p style=\"min-height:1.5em\"><a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"http://Wealth.com\">Wealth.com</a> is the industry\u2019s leading AI Wealth Management platform, [trimmed for fixture]",
+   "descriptionPlain": "Wealth.com http://Wealth.com is the industry\u2019s leading AI Wealth Management platform, empowering financial advisors to offer modern, comprehensive estate planning solutions to [trimmed for fixture]",
+   "compensation": {
+    "compensationTiers": [],
+    "summaryComponents": [],
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTierSummary": null
+   }
+  }
+ ]
+}

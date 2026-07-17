@@ -1,0 +1,70 @@
+{
+ "absolute_url": "https://job-boards.greenhouse.io/gongio/jobs/4679941006",
+ "internal_job_id": 4540268006,
+ "location": {
+  "name": "Austin | Chicago | New York City | Salt Lake City | San Francisco"
+ },
+ "metadata": [
+  {
+   "id": 16593235006,
+   "name": "Job Level",
+   "value": null,
+   "value_type": "single_select"
+  },
+  {
+   "id": 4372012006,
+   "name": "Time Type",
+   "value": null,
+   "value_type": "single_select"
+  },
+  {
+   "id": 6928452006,
+   "name": "Cost Center Hierarchy",
+   "value": null,
+   "value_type": "short_text"
+  },
+  {
+   "id": 9218330006,
+   "name": "Segment",
+   "value": null,
+   "value_type": "single_select"
+  }
+ ],
+ "id": 4679941006,
+ "updated_at": "2026-07-16T14:44:23-04:00",
+ "requisition_id": "77",
+ "title": "Commercial Revenue Architect",
+ "company_name": "Gong.io",
+ "first_published": "2026-05-07T14:53:31-04:00",
+ "language": "en",
+ "application_deadline": null,
+ "content": "&lt;div&gt;&lt;p&gt;Trimmed for fixture.&lt;/p&gt;\n&lt;p&gt;Education &amp;amp; learning stipend.&amp;nbsp;&lt;/p&gt;\n\n&lt;p style=&quot;text-align: left;&quot;&gt;&lt;strong&gt;The annual OTE for this position is $90,000 - $120,000 USD.&amp;nbsp;&lt;/strong&gt;&lt;/p&gt;\n&lt;p style=&quot;text-align: left;&quot;&gt;Compensation is based on factors unique to each candidate, i&lt;/div&gt;",
+ "departments": [
+  {
+   "id": 4003834006,
+   "name": "Customer Success",
+   "child_ids": [
+    4004471006,
+    4004475006,
+    4004476006,
+    4004477006,
+    4004479006,
+    4014511006,
+    4019761006
+   ],
+   "parent_id": null
+  }
+ ],
+ "offices": [
+  {
+   "id": 4001764006,
+   "name": "Remote (US)",
+   "location": null,
+   "child_ids": [],
+   "parent_id": 4001755006
+  }
+ ],
+ "ai_disclaimer": null,
+ "include_ai_disclaimer": null,
+ "ai_opt_out_request_url": null
+}

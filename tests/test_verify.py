@@ -7,8 +7,8 @@ from __future__ import annotations
 
 import httpx
 import respx
-from conftest import make_role
 
+from conftest import make_role
 from engine.verify import verify
 
 URL = "https://example.com/job/1"

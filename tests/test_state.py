@@ -5,7 +5,6 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 
 from conftest import make_role
-
 from engine.state import SeenStore
 
 MONDAY = datetime(2026, 7, 14, 3, 0, tzinfo=UTC)

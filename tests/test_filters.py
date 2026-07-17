@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import pytest
-from conftest import make_role
 
+from conftest import make_role
 from engine.filters import FilterEngine, normalize_title
 from engine.models import CompRange
 
@@ -46,7 +46,10 @@ def test_target_titles_are_included(engine, title):
 
 
 def test_growth_engineer_is_flagged_never_dropped(engine):
-    role = make_role(title="Growth Engineer", comp=CompRange(min=200000, max=250000, source="structured"))
+    role = make_role(
+        title="Growth Engineer",
+        comp=CompRange(min=200000, max=250000, source="structured"),
+    )
     verdict = engine.evaluate(role)
 
     assert engine.title_family(role) == "flag"

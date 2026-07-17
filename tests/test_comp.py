@@ -79,7 +79,10 @@ def test_html_to_text_survives_greenhouse_double_escaping():
 
     One unescape pass leaves literal &nbsp; sitting in the description text.
     """
-    raw = "&lt;p&gt;Base salary is $190,000.&amp;nbsp;&lt;/p&gt;&lt;p&gt;R&amp;amp;D team.&lt;/p&gt;"
+    raw = (
+        "&lt;p&gt;Base salary is $190,000.&amp;nbsp;&lt;/p&gt;"
+        "&lt;p&gt;R&amp;amp;D team.&lt;/p&gt;"
+    )
     text = html_to_text(raw)
 
     assert "<p>" not in text

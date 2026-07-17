@@ -9,7 +9,6 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from conftest import make_role
-
 from engine.digest import render
 from engine.models import CompRange, OrgWarning, RunResult, Verdict
 

@@ -17,6 +17,8 @@ done/
 sprints/
 overnight.sh
 kickoff.sh
+dash.sh
+feed.sh
 
 # Python
 __pycache__/

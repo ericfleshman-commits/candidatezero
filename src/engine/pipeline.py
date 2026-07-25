@@ -120,42 +120,30 @@ def run_pipeline(
 
 
 def check_org(slug: str, client: PoliteClient) -> list[dict]:
-    """Probe both ATSs for a slug and report what answered.
+    """Probe every ATS we know for a slug and report what answered.
 
     This is the doctor. Slugs are the single most common source of silent
     failure in this engine: they are not company names, they are whatever the
     org typed into its ATS on setup. Wealth.com is wealth-com, Gong is gongio,
     Telnyx is telnyx54.
+
+    Workday is only probed when the slug carries its tenant/site shape, since a
+    bare slug cannot address a Workday board at all.
     """
-    from engine.sourcers.ashby import BOARD_URL as ASHBY_URL
-    from engine.sourcers.greenhouse import LIST_URL as GH_URL
+    from engine.discover import PROBE_VENDORS, probe_org
 
-    probes = [
-        ("ashby", ASHBY_URL.format(slug=slug)),
-        ("greenhouse", GH_URL.format(slug=slug)),
-    ]
     findings: list[dict] = []
-
-    for source, url in probes:
-        try:
-            payload = client.get_json(url)
-        except OrgNotFound:
-            findings.append({"source": source, "status": "404", "detail": "no board at this slug"})
+    for vendor in PROBE_VENDORS:
+        if vendor == "workday" and "/" not in slug:
             continue
-        except OrgUnavailable as exc:
-            findings.append({"source": source, "status": "error", "detail": str(exc)})
-            continue
-
-        jobs = payload.get("jobs") or []
-        listed = [j for j in jobs if j.get("isListed", True)]
+        probe = probe_org(vendor, slug, client)
         findings.append(
             {
-                "source": source,
-                "status": "ok",
-                "detail": f"{len(listed)} listed jobs",
-                "count": len(listed),
-                "sample": [j.get("title", "") for j in listed[:3]],
+                "source": vendor,
+                "status": probe.status,
+                "detail": probe.detail if probe.status != "404" else "no board at this slug",
+                "count": probe.count,
+                "sample": probe.sample,
             }
         )
-
     return findings

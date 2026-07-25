@@ -9,12 +9,23 @@ import httpx
 import respx
 
 from engine.config import CompaniesConfig, CompanyEntry, Config
+from engine.discover import SMARTRECRUITERS_API, WORKABLE_API
 from engine.pipeline import check_org, run_pipeline
 from engine.sourcers.ashby import BOARD_URL
 from engine.sourcers.greenhouse import LIST_URL
+from engine.sourcers.lever import POSTINGS_URL
 
 ASHBY = BOARD_URL.format(slug="wealth-com")
 GH = LIST_URL.format(slug="gongio")
+
+
+def _mock_other_vendors_404(slug: str) -> None:
+    """check-org probes every vendor; most tests only care about two of them."""
+    respx.get(POSTINGS_URL.format(slug=slug)).mock(return_value=httpx.Response(404))
+    respx.get(WORKABLE_API.format(slug=slug)).mock(return_value=httpx.Response(404))
+    respx.get(SMARTRECRUITERS_API.format(slug=slug)).mock(
+        return_value=httpx.Response(200, json={"totalFound": 0, "content": []})
+    )
 
 
 def _ashby_only(filters_cfg) -> Config:
@@ -126,18 +137,23 @@ def test_check_org_finds_the_board_on_the_right_ats(ashby_board, client):
         return_value=httpx.Response(200, json=ashby_board)
     )
     respx.get(LIST_URL.format(slug="wealth-com")).mock(return_value=httpx.Response(404))
+    _mock_other_vendors_404("wealth-com")
 
     findings = {f["source"]: f for f in check_org("wealth-com", client)}
 
     assert findings["ashby"]["status"] == "ok"
     assert findings["ashby"]["count"] == 4  # unlisted excluded
     assert findings["greenhouse"]["status"] == "404"
+    assert findings["lever"]["status"] == "404"
+    assert "workday" not in findings  # a bare slug cannot address a workday board
 
 
 @respx.mock
 def test_check_org_reports_a_slug_that_exists_nowhere(client):
     respx.get(BOARD_URL.format(slug="nope")).mock(return_value=httpx.Response(404))
     respx.get(LIST_URL.format(slug="nope")).mock(return_value=httpx.Response(404))
+    _mock_other_vendors_404("nope")
 
     findings = check_org("nope", client)
+    assert len(findings) == 5
     assert all(f["status"] == "404" for f in findings)

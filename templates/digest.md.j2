@@ -54,6 +54,15 @@ Nothing flagged tonight.
 
 ## Footer
 
+The funnel, in the order it runs. Cheap filters run before comp parsing, comp
+before liveness, and liveness before any model call:
+
+- postings read: {{ result.roles_seen }}
+{% for stage, count in result.funnel_stages() %}
+- eliminated at {{ stage }}: {{ count }}
+{% endfor %}
+- survived: {{ result.survivors }}
+
 Dropped, by reason:
 
 {% if result.drop_counts %}

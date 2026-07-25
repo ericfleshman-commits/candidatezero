@@ -5,12 +5,16 @@ The rule under test everywhere here: a dead org must never crash the run.
 
 from __future__ import annotations
 
+import json
+from datetime import date
+
 import httpx
 import respx
 
 from engine.config import CompaniesConfig, CompanyEntry, Config
 from engine.discover import SMARTRECRUITERS_API, WORKABLE_API
-from engine.pipeline import check_org, run_pipeline
+from engine.pipeline import append_run_record, check_org, gather_orgs, run_pipeline
+from engine.registry import OrgRecord, Registry
 from engine.sourcers.ashby import BOARD_URL
 from engine.sourcers.greenhouse import LIST_URL
 from engine.sourcers.lever import POSTINGS_URL
@@ -129,6 +133,95 @@ def test_include_open_reprints_known_roles(ashby_board, filters_cfg, client, tmp
     )
 
     assert len(again.kept) + len(again.flagged) == len(first.kept) + len(first.flagged)
+
+
+def _live_registry(tmp_path, *records: OrgRecord) -> Registry:
+    reg = Registry(tmp_path / "registry.jsonl")
+    for record in records:
+        reg.upsert(record)
+        reg.mark_live(record.vendor, record.slug, 1, when=date(2026, 7, 25))
+    return reg
+
+
+@respx.mock
+def test_registry_orgs_are_scanned_alongside_the_pins(ashby_board, filters_cfg, client, tmp_path):
+    """The 8-org ceiling breaks here: live registry orgs join the night's scan."""
+    reg = _live_registry(
+        tmp_path,
+        OrgRecord(vendor="lever", slug="outreach", company_name="Outreach"),
+        OrgRecord(vendor="ashby", slug="wealth-com"),  # also pinned; must not scan twice
+        OrgRecord(vendor="workday", slug="acme.wd1/Ext", company_name="Acme"),  # no harvester
+    )
+    respx.get(ASHBY).mock(return_value=httpx.Response(200, json=ashby_board))
+    lever_route = respx.get(POSTINGS_URL.format(slug="outreach")).mock(
+        return_value=httpx.Response(
+            200,
+            json=[
+                {
+                    "id": "abc",
+                    "text": "GTM Engineer",
+                    "workplaceType": "remote",
+                    "categories": {"location": "United States"},
+                    "salaryRange": {"min": 170000, "max": 200000, "currency": "USD"},
+                    "hostedUrl": "https://jobs.lever.co/outreach/abc",
+                }
+            ],
+        )
+    )
+    respx.head(url__regex=r"https://jobs\.(ashbyhq|lever)\.co.*").mock(
+        return_value=httpx.Response(200)
+    )
+    respx.head(url__regex=r"https://jobs\.ashbyhq\.com/.*").mock(return_value=httpx.Response(200))
+
+    result = run_pipeline(
+        _ashby_only(filters_cfg), client, root=tmp_path, use_state=False, registry=reg
+    )
+
+    assert result.orgs_scanned == 2  # wealth-com once, outreach once
+    assert result.orgs_live == 3
+    assert result.orgs_without_harvester == 1
+    assert lever_route.call_count == 1
+    assert "Outreach" in {r.company_name for r in result.kept + result.flagged}
+
+
+def test_gather_orgs_pins_always_win(filters_cfg, tmp_path):
+    cfg = _ashby_only(filters_cfg)
+    reg = _live_registry(tmp_path, OrgRecord(vendor="ashby", slug="wealth-com", company_name="W"))
+
+    orgs, without = gather_orgs(cfg, reg)
+
+    assert [(s, e.slug) for s, e in orgs] == [("ashby", "wealth-com")]
+    assert without == 0
+
+
+def test_append_run_record_writes_one_json_line(tmp_path):
+    from engine.models import RunResult
+
+    result = RunResult(
+        orgs_scanned=42,
+        orgs_live=40,
+        roles_seen=943,
+        drop_counts={"title": 900, "location": 20, "comp": 10, "zombie": 3},
+        still_open=4,
+        duration_seconds=61.25,
+    )
+
+    path = append_run_record(result, root=tmp_path, run_date=date(2026, 7, 25))
+    path = append_run_record(result, root=tmp_path, run_date=date(2026, 7, 26))
+
+    lines = path.read_text(encoding="utf-8").strip().splitlines()
+    assert len(lines) == 2
+    record = json.loads(lines[0])
+    assert record == {
+        "date": "2026-07-25",
+        "orgs_live": 40,
+        "orgs_scanned": 42,
+        "postings_read": 943,
+        "eliminated": {"title": 900, "location": 20, "comp": 10, "liveness": 3},
+        "survivors": 4,
+        "flagged": 0,
+        "duration_seconds": 61.2,
+    }
 
 
 @respx.mock

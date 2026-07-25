@@ -9,13 +9,14 @@ from __future__ import annotations
 
 import argparse
 import sys
+import time
 from datetime import date
 from pathlib import Path
 
 from engine import digest as digest_mod
 from engine.config import HOST_DELAY_SECONDS, Config, data_dir, load_config
 from engine.discover import add_domains, verify_registry
-from engine.pipeline import check_org, run_pipeline
+from engine.pipeline import append_run_record, check_org, run_pipeline
 from engine.registry import VENDORS, Registry, registry_path
 from engine.sourcers.base import PoliteClient
 
@@ -28,9 +29,16 @@ def _describe_config(cfg: Config) -> str:
 def cmd_run(args: argparse.Namespace) -> int:
     cfg = load_config()
     print(f"config: {_describe_config(cfg)}")
-    orgs = cfg.companies.active()
-    print(f"scanning {len(orgs)} orgs across ashby and greenhouse")
 
+    registry = Registry.load(registry_path())
+    reg = registry if registry.records else None
+    pins = len(cfg.companies.active())
+    if reg is not None:
+        print(f"orgs: {pins} pinned in companies.yaml, {len(reg.live())} live in the registry")
+    else:
+        print(f"orgs: {pins} pinned in companies.yaml, registry empty")
+
+    start = time.monotonic()
     with PoliteClient(delay=args.delay) as client:
         result = run_pipeline(
             cfg,
@@ -38,21 +46,27 @@ def cmd_run(args: argparse.Namespace) -> int:
             use_state=not args.no_state,
             include_open=args.include_open,
             do_verify=not args.no_verify,
+            registry=reg,
         )
+    result.duration_seconds = time.monotonic() - start
 
     path = digest_mod.write(result, data_dir(), run_date=date.today())
+    runs_path = append_run_record(result, run_date=date.today())
 
     print(
-        f"roles seen: {result.roles_seen} | "
+        f"orgs scanned: {result.orgs_scanned} | roles seen: {result.roles_seen} | "
         f"new and kept: {len(result.kept)} | flagged: {len(result.flagged)} | "
         f"still open: {result.still_open}"
     )
-    if result.drop_counts:
-        drops = ", ".join(f"{k}={v}" for k, v in sorted(result.drop_counts.items()))
-        print(f"dropped: {drops}")
+    funnel = " | ".join(f"{stage}={count}" for stage, count in result.funnel_stages())
+    print(f"funnel eliminations: {funnel}")
+    if result.orgs_without_harvester:
+        print(f"live orgs waiting on a harvester: {result.orgs_without_harvester}")
     for warning in result.warnings:
         print(f"warning: {warning.source}/{warning.slug}: {warning.reason}")
+    print(f"duration: {result.duration_seconds:.1f}s")
     print(f"digest: {path}")
+    print(f"run log: {runs_path}")
     return 0
 
 

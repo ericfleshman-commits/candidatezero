@@ -141,3 +141,28 @@ class RunResult(BaseModel):
     # Survivors that are not new tonight. Counted, not printed, so a nightly
     # digest stays a diff rather than reprinting the same roles forever.
     still_open: int = 0
+    # Registry accounting. orgs_live is every live org the registry holds;
+    # orgs_without_harvester is the subset on vendors we cannot read yet.
+    orgs_live: int = 0
+    orgs_without_harvester: int = 0
+    duration_seconds: float = 0.0
+
+    def funnel_stages(self) -> list[tuple[str, int]]:
+        """Eliminations in the order the funnel actually runs them.
+
+        The order is a design constraint, not presentation: title and location
+        are regex-cheap, comp parsing costs detail fetches, liveness costs a
+        probe per role, and any future model call is the most expensive step of
+        all. At registry scale this ordering is what keeps the engine viable.
+        """
+        return [
+            ("title", self.drop_counts.get("title", 0)),
+            ("location", self.drop_counts.get("location", 0)),
+            ("comp", self.drop_counts.get("comp", 0)),
+            ("liveness", self.drop_counts.get("zombie", 0)),
+        ]
+
+    @property
+    def survivors(self) -> int:
+        """Roles that cleared every funnel stage tonight, new or not."""
+        return len(self.kept) + len(self.flagged) + self.still_open

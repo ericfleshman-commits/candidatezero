@@ -62,6 +62,24 @@ def test_digest_separates_flagged_from_verified():
     assert "band-top-only" in body.split("## Flagged")[1]
 
 
+def test_footer_prints_the_funnel_in_order():
+    result = _result()
+    result.still_open = 3
+    footer = render(result, run_date=datetime(2026, 7, 16).date()).split("## Footer")[1]
+
+    assert "postings read: 942" in footer
+    assert "eliminated at title: 935" in footer
+    assert "eliminated at location: 2" in footer
+    assert "eliminated at comp: 0" in footer
+    assert "eliminated at liveness: 1" in footer
+    assert "survived: 5" in footer  # 1 kept, 1 flagged, 3 still open
+    # The stages appear in funnel order, cheap to expensive.
+    positions = [
+        footer.index(f"eliminated at {s}") for s in ("title", "location", "comp", "liveness")
+    ]
+    assert positions == sorted(positions)
+
+
 def test_dropped_roles_are_counts_only_never_noise():
     body = render(_result(), run_date=datetime(2026, 7, 16).date())
     footer = body.split("## Footer")[1]

@@ -3,29 +3,73 @@
 Kept out of cli.py so the whole pipeline can be tested without argparse in the
 way.
 
-The expensive-last principle shows up twice here. Greenhouse detail fetches are
-gated behind the title and location filters, and liveness probes only ever touch
-roles that already survived every filter. A board like Gong's has 102 postings
-and this run will make roughly two extra requests against it.
+The funnel order is enforced here and it is a scale constraint, not an
+optimization: title-family and the cheap regex filters run before comp parsing
+(Greenhouse detail fetches are gated behind them), comp runs before liveness
+re-verification, and liveness runs before any model call this engine ever
+grows. Every stage counts what it eliminated and the digest footer prints the
+funnel, because at registry scale the eliminations ARE the product working.
 """
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+import json
+from datetime import UTC, date, datetime
 from pathlib import Path
 
-from engine.config import Config, data_dir
+from engine.config import CompanyEntry, Config, data_dir
 from engine.filters import FilterEngine
 from engine.models import OrgWarning, Role, RunResult
+from engine.registry import Registry
 from engine.sourcers.ashby import AshbySourcer
 from engine.sourcers.base import OrgNotFound, OrgUnavailable, PoliteClient
 from engine.sourcers.greenhouse import GreenhouseSourcer
+from engine.sourcers.lever import LeverSourcer
 from engine.state import SeenStore
 from engine.verify import verify
 
+# The vendors this engine can harvest tonight. The registry tracks more; a
+# live workday org waits in the registry until its harvester exists.
+HARVESTED_VENDORS: tuple[str, ...] = ("ashby", "greenhouse", "lever")
+
 
 def build_sourcers(client: PoliteClient) -> dict:
-    return {"ashby": AshbySourcer(client), "greenhouse": GreenhouseSourcer(client)}
+    return {
+        "ashby": AshbySourcer(client),
+        "greenhouse": GreenhouseSourcer(client),
+        "lever": LeverSourcer(client),
+    }
+
+
+def gather_orgs(
+    cfg: Config, registry: Registry | None
+) -> tuple[list[tuple[str, CompanyEntry]], int]:
+    """The night's org list: companies.yaml pins first and always, then every
+    live registry org whose vendor has a harvester.
+
+    companies.yaml stays supported as a pin list on purpose. The registry is
+    generated data; the pins are the orgs Eric refuses to lose to a bad
+    verification pass. Returns the list plus a count of live orgs skipped
+    because their vendor has no harvester yet.
+    """
+    orgs = list(cfg.companies.active())
+    seen = {(source, entry.slug) for source, entry in orgs}
+    without_harvester = 0
+
+    if registry is not None:
+        for record in registry.live():
+            if record.vendor not in HARVESTED_VENDORS:
+                without_harvester += 1
+                continue
+            key = (record.vendor, record.slug)
+            if key in seen:
+                continue
+            seen.add(key)
+            orgs.append(
+                (record.vendor, CompanyEntry(slug=record.slug, company=record.company_name or None))
+            )
+
+    return orgs, without_harvester
 
 
 def run_pipeline(
@@ -36,16 +80,20 @@ def run_pipeline(
     include_open: bool = False,
     do_verify: bool = True,
     now: datetime | None = None,
+    registry: Registry | None = None,
 ) -> RunResult:
     stamp = now or datetime.now(UTC)
     filters = FilterEngine(cfg.filters)
     sourcers = build_sourcers(client)
     result = RunResult()
 
+    orgs, result.orgs_without_harvester = gather_orgs(cfg, registry)
+    result.orgs_live = len(registry.live()) if registry is not None else 0
+
     all_roles: list[Role] = []
     scanned_org_keys: set[str] = set()
 
-    for source, org in cfg.companies.active():
+    for source, org in orgs:
         sourcer = sourcers[source]
         try:
             roles = sourcer.fetch(org, needs_detail=filters.wants_detail)
@@ -88,6 +136,11 @@ def run_pipeline(
                 f"{e.company_name}: {e.title} ({e.url})" for e in closed_entries
             ]
 
+    # Funnel stages 1 to 3: title, then location, then comp. FilterEngine
+    # evaluates in exactly that order and its drop reason names the stage that
+    # killed the role, which is where the per-stage counters come from. Comp
+    # parsing itself already ran expensive-last: the Greenhouse sourcer only
+    # fetched detail for roles that cleared title and location.
     survivors: list[Role] = []
     for role in all_roles:
         verdict = role.verdict = filters.evaluate(role)
@@ -97,6 +150,8 @@ def run_pipeline(
             continue
         survivors.append(role)
 
+    # Funnel stage 4: liveness, and only for roles that survived every filter.
+    # Any model call this engine ever grows belongs after this line.
     for role in survivors:
         if do_verify:
             liveness = verify(role, client, board_ids=board_ids)
@@ -117,6 +172,31 @@ def run_pipeline(
         store.save(seen_path)
 
     return result
+
+
+def append_run_record(
+    result: RunResult, root: Path | None = None, run_date: date | None = None
+) -> Path:
+    """One JSON line per run to data/runs.jsonl.
+
+    This is the engine's own churn data: what it read, what each funnel stage
+    killed, and what survived. The newsletter sprint consumes this file; the
+    contract here is just to write it honestly.
+    """
+    path = data_dir(root) / "runs.jsonl"
+    record = {
+        "date": (run_date or date.today()).isoformat(),
+        "orgs_live": result.orgs_live,
+        "orgs_scanned": result.orgs_scanned,
+        "postings_read": result.roles_seen,
+        "eliminated": dict(result.funnel_stages()),
+        "survivors": result.survivors,
+        "flagged": len(result.flagged),
+        "duration_seconds": round(result.duration_seconds, 1),
+    }
+    with path.open("a", encoding="utf-8") as fh:
+        fh.write(json.dumps(record) + "\n")
+    return path
 
 
 def check_org(slug: str, client: PoliteClient) -> list[dict]:

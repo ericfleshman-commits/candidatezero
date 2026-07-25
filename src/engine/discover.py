@@ -25,11 +25,14 @@ Endpoint shapes verified live on 2026-07-25:
 from __future__ import annotations
 
 import re
+from collections.abc import Callable, Iterable
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import date
 from urllib.parse import unquote
 
 from pydantic import BaseModel, Field
 
-from engine.registry import OrgRecord
+from engine.registry import OrgRecord, Registry
 from engine.sourcers.ashby import BOARD_URL as ASHBY_API
 from engine.sourcers.base import OrgNotFound, OrgUnavailable, PoliteClient
 from engine.sourcers.greenhouse import LIST_URL as GREENHOUSE_API
@@ -295,3 +298,136 @@ def probe_org(vendor: str, slug: str, client: PoliteClient) -> Probe:
         return Probe(status="404", detail=str(exc) or "no board at this slug")
     except OrgUnavailable as exc:
         return Probe(status="error", detail=str(exc))
+
+
+# Bulk passes --------------------------------------------------------------
+#
+# Both passes run at most `workers` requests in flight, mutate the registry
+# only on the main thread, and save as they go, so an interrupted 3am run
+# loses at most one save interval of work and simply resumes.
+
+MAX_WORKERS = 4
+Progress = Callable[[str], None]
+
+
+def _noop(_msg: str) -> None:
+    return None
+
+
+def verify_registry(
+    registry: Registry,
+    client: PoliteClient,
+    vendor: str | None = None,
+    limit: int | None = None,
+    workers: int = MAX_WORKERS,
+    today: date | None = None,
+    progress: Progress = _noop,
+    save_every: int = 50,
+) -> dict[str, int]:
+    """Re-check records against their vendor's public API, stalest first."""
+    when = today or date.today()
+    records = [
+        r
+        for r in registry.records.values()
+        if r.vendor != "unknown" and (vendor is None or r.vendor == vendor)
+    ]
+    # Never-verified rows first, then the ones whose facts are oldest.
+    records.sort(key=lambda r: (r.last_verified is not None, r.last_verified or when, r.key))
+    if limit is not None:
+        records = records[:limit]
+
+    counts = {"checked": 0, "live": 0, "dead": 0, "error": 0, "went_dead": 0, "revived": 0}
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = {pool.submit(probe_org, r.vendor, r.slug, client): r for r in records}
+        for future in as_completed(futures):
+            record = futures[future]
+            try:
+                probe = future.result()
+            except Exception as exc:  # noqa: BLE001 - a 3am pass must outlive one bad org
+                probe = Probe(status="error", detail=f"{type(exc).__name__}: {exc}")
+            counts["checked"] += 1
+
+            if probe.status == "ok":
+                if record.status == "dead":
+                    counts["revived"] += 1
+                    progress(f"revived: {record.vendor}/{record.slug} ({probe.count} postings)")
+                registry.mark_live(
+                    record.vendor, record.slug, probe.count, when, probe.company_name
+                )
+                counts["live"] += 1
+            elif probe.status == "404":
+                if record.status == "live":
+                    counts["went_dead"] += 1
+                    progress(f"went dead: {record.vendor}/{record.slug}: {probe.detail}")
+                registry.mark_dead(record.vendor, record.slug, when, probe.detail)
+                counts["dead"] += 1
+            else:
+                # A timeout is not a verdict. Leave the record as it was and
+                # let the next pass try again.
+                counts["error"] += 1
+
+            if counts["checked"] % save_every == 0:
+                registry.save()
+                progress(f"{counts['checked']}/{len(records)} checked")
+
+    registry.save()
+    return counts
+
+
+def add_domains(
+    registry: Registry,
+    domains: Iterable[str],
+    client: PoliteClient,
+    discovered_via: str,
+    workers: int = MAX_WORKERS,
+    progress: Progress = _noop,
+    save_every: int = 25,
+) -> dict[str, int]:
+    """Discover boards for a list of domains and fold them into the registry.
+
+    Domains the registry has already seen are skipped, which is what makes a
+    multi-thousand-domain pass resumable after an interrupt.
+    """
+    seen = registry.domains_seen()
+    todo: list[str] = []
+    counts = {"scanned": 0, "skipped": 0, "orgs_found": 0, "no_match": 0}
+    for raw in domains:
+        domain = _domain_of(raw)
+        if not domain or domain.startswith("#"):
+            continue
+        if domain in seen:
+            counts["skipped"] += 1
+            continue
+        seen.add(domain)
+        todo.append(domain)
+
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = {
+            pool.submit(discover, domain, client, discovered_via): domain for domain in todo
+        }
+        for future in as_completed(futures):
+            domain = futures[future]
+            counts["scanned"] += 1
+            try:
+                records = future.result()
+            except Exception as exc:  # noqa: BLE001 - one weird page must not end the pass
+                # No marker row either: an error is not "no board here", and
+                # the domain deserves a retry on the next pass.
+                progress(f"error: {domain}: {type(exc).__name__}: {exc}")
+                continue
+
+            if records:
+                counts["orgs_found"] += len(records)
+                for record in records:
+                    registry.upsert(record)
+                    progress(f"found: {domain} uses {record.vendor} as {record.slug}")
+            else:
+                counts["no_match"] += 1
+                registry.upsert(no_match_record(domain, discovered_via))
+
+            if counts["scanned"] % save_every == 0:
+                registry.save()
+                progress(f"{counts['scanned']}/{len(todo)} domains scanned")
+
+    registry.save()
+    return counts

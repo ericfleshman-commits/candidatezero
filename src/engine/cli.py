@@ -1,6 +1,8 @@
-"""Command line: engine run | engine check-org | engine digest.
+"""Command line: engine run | engine check-org | engine digest | engine registry.
 
-One command, run by cron, writes one file. That is the whole interface.
+One command, run by cron, writes one file. That is the whole interface. The
+registry subcommands are the exception: they maintain the org registry that
+the nightly run reads, and they are run by hand or by their own cron.
 """
 
 from __future__ import annotations
@@ -8,10 +10,13 @@ from __future__ import annotations
 import argparse
 import sys
 from datetime import date
+from pathlib import Path
 
 from engine import digest as digest_mod
 from engine.config import HOST_DELAY_SECONDS, Config, data_dir, load_config
+from engine.discover import add_domains, verify_registry
 from engine.pipeline import check_org, run_pipeline
+from engine.registry import VENDORS, Registry, registry_path
 from engine.sourcers.base import PoliteClient
 
 
@@ -71,6 +76,74 @@ def cmd_check_org(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_registry_verify(args: argparse.Namespace) -> int:
+    registry = Registry.load(registry_path())
+    if not registry.records:
+        print(f"registry is empty at {registry.path}. Seed it with: engine registry add-domains")
+        return 1
+
+    with PoliteClient(delay=args.delay) as client:
+        counts = verify_registry(
+            registry,
+            client,
+            vendor=args.vendor,
+            limit=args.limit,
+            progress=print,
+        )
+
+    print(
+        f"checked: {counts['checked']} | live: {counts['live']} | dead: {counts['dead']} | "
+        f"errors: {counts['error']} | went dead: {counts['went_dead']} | "
+        f"revived: {counts['revived']}"
+    )
+    return 0
+
+
+def cmd_registry_add_domains(args: argparse.Namespace) -> int:
+    source = Path(args.file)
+    if not source.is_file():
+        print(f"no domain list at {source}")
+        return 1
+    domains = [line.strip() for line in source.read_text(encoding="utf-8").splitlines()]
+    domains = [d for d in domains if d and not d.startswith("#")]
+
+    registry = Registry.load(registry_path())
+    with PoliteClient(delay=args.delay) as client:
+        counts = add_domains(
+            registry,
+            domains,
+            client,
+            discovered_via=args.via or f"domains:{source.name}",
+            progress=print,
+        )
+
+    print(
+        f"scanned: {counts['scanned']} | already known: {counts['skipped']} | "
+        f"orgs found: {counts['orgs_found']} | no match: {counts['no_match']}"
+    )
+    print("now verify what was found: uv run engine registry verify")
+    return 0
+
+
+def cmd_registry_stats(args: argparse.Namespace) -> int:
+    registry = Registry.load(registry_path())
+    stats = registry.stats()
+
+    print(f"registry: {registry.path}")
+    print(f"total orgs: {stats.total}")
+    print("live by vendor:")
+    for vendor in VENDORS:
+        count = stats.live_by_vendor.get(vendor, 0)
+        if count:
+            print(f"  {vendor:<15} {count}")
+    if not stats.live_by_vendor:
+        print("  none yet")
+    print(f"live: {stats.live} | dead: {stats.dead} | unverified: {stats.unverified}")
+    print(f"domains with no detectable ATS: {stats.no_ats_found}")
+    print(f"total postings last seen across live boards: {stats.postings_last_seen}")
+    return 0
+
+
 def cmd_digest(args: argparse.Namespace) -> int:
     """Reprint the digest for a date, without touching the network."""
     target = data_dir() / f"digest-{args.date}.md"
@@ -111,6 +184,24 @@ def main(argv: list[str] | None = None) -> int:
     dig = sub.add_parser("digest", help="print a digest that was already written")
     dig.add_argument("--date", default=date.today().isoformat())
     dig.set_defaults(func=cmd_digest)
+
+    registry = sub.add_parser("registry", help="maintain the org registry, the engine's real asset")
+    reg_sub = registry.add_subparsers(dest="registry_command", required=True)
+
+    verify = reg_sub.add_parser("verify", help="re-check records against their vendor's public API")
+    verify.add_argument("--vendor", choices=[v for v in VENDORS], default=None)
+    verify.add_argument("--limit", type=int, default=None, help="check at most N records")
+    verify.set_defaults(func=cmd_registry_verify)
+
+    add = reg_sub.add_parser(
+        "add-domains", help="discover boards for a newline-delimited domain list"
+    )
+    add.add_argument("file")
+    add.add_argument("--via", default=None, help="discovered_via label written to new records")
+    add.set_defaults(func=cmd_registry_add_domains)
+
+    stats = reg_sub.add_parser("stats", help="print registry coverage")
+    stats.set_defaults(func=cmd_registry_stats)
 
     args = parser.parse_args(argv)
     return args.func(args)

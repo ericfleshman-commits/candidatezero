@@ -9,18 +9,24 @@ but a redirect to the board.
 
 from __future__ import annotations
 
+from datetime import date
+
 import httpx
 import respx
 
 from engine.discover import (
     SMARTRECRUITERS_API,
     WORKABLE_API,
+    add_domains,
     candidate_urls,
     discover,
     extract_board_refs,
     no_match_record,
     probe_org,
+    verify_registry,
 )
+from engine.registry import OrgRecord, Registry
+from engine.sourcers.greenhouse import LIST_URL
 from engine.sourcers.lever import POSTINGS_URL
 
 # Detection ----------------------------------------------------------------
@@ -213,3 +219,90 @@ def test_probe_never_raises(client):
     respx.get(POSTINGS_URL.format(slug="flaky")).mock(side_effect=httpx.ConnectTimeout("boom"))
     assert probe_org("lever", "flaky", client).status == "error"
     assert probe_org("nonsense-vendor", "x", client).status == "error"
+
+
+# Bulk passes --------------------------------------------------------------
+
+
+def _registry_with(tmp_path, *records: OrgRecord) -> Registry:
+    reg = Registry(tmp_path / "registry.jsonl")
+    for record in records:
+        reg.upsert(record)
+    return reg
+
+
+@respx.mock
+def test_verify_pass_flips_live_and_dead_both_ways(client, tmp_path):
+    reg = _registry_with(
+        tmp_path,
+        OrgRecord(vendor="greenhouse", slug="gongio", company_name="Gong"),
+        OrgRecord(vendor="greenhouse", slug="ghost-co"),
+    )
+    reg.mark_dead("greenhouse", "gongio", when=date(2026, 7, 1), reason="404")
+    reg.mark_live("greenhouse", "ghost-co", 5, when=date(2026, 7, 1))
+
+    respx.get(LIST_URL.format(slug="gongio")).mock(
+        return_value=httpx.Response(
+            200, json={"jobs": [{"title": "GTM Engineer", "company_name": "Gong.io"}]}
+        )
+    )
+    respx.get(LIST_URL.format(slug="ghost-co")).mock(return_value=httpx.Response(404))
+
+    counts = verify_registry(reg, client, today=date(2026, 7, 25))
+
+    revived = reg.get("greenhouse", "gongio")
+    assert revived.status == "live"
+    assert revived.last_posting_count == 1
+    assert revived.last_verified == date(2026, 7, 25)
+    assert revived.company_name == "Gong.io"  # the API's own name beat the guess
+    assert "back from the dead on 2026-07-25" in revived.notes
+
+    died = reg.get("greenhouse", "ghost-co")
+    assert died.status == "dead"
+    assert "went dead on 2026-07-25" in died.notes
+
+    assert counts["checked"] == 2 and counts["revived"] == 1 and counts["went_dead"] == 1
+    assert Registry.load(reg.path).get("greenhouse", "gongio").status == "live"  # saved
+
+
+@respx.mock
+def test_verify_pass_treats_errors_as_no_verdict(client, tmp_path):
+    reg = _registry_with(tmp_path, OrgRecord(vendor="greenhouse", slug="gongio"))
+    reg.mark_live("greenhouse", "gongio", 7, when=date(2026, 7, 1))
+    respx.get(LIST_URL.format(slug="gongio")).mock(side_effect=httpx.ConnectTimeout("boom"))
+
+    counts = verify_registry(reg, client, today=date(2026, 7, 25))
+
+    record = reg.get("greenhouse", "gongio")
+    assert counts["error"] == 1
+    assert record.status == "live"  # a timeout is not proof of death
+    assert record.last_verified == date(2026, 7, 1)  # untouched, so it retries next pass
+
+
+@respx.mock
+def test_add_domains_writes_finds_and_markers_and_skips_known(client, tmp_path):
+    reg = _registry_with(
+        tmp_path, OrgRecord(vendor="greenhouse", slug="telnyx54", domain="telnyx.com")
+    )
+    respx.get("https://gong.io/careers").mock(
+        return_value=httpx.Response(
+            200, text='<a href="https://boards.greenhouse.io/gongio">roles</a>'
+        )
+    )
+    for path in ("careers", "jobs", ""):
+        respx.get(f"https://opaque.example/{path}").mock(
+            return_value=httpx.Response(200, text="<h1>hi</h1>")
+        )
+
+    counts = add_domains(
+        reg, ["gong.io", "opaque.example", "telnyx.com"], client, discovered_via="seed:test"
+    )
+
+    assert counts == {"scanned": 2, "skipped": 1, "orgs_found": 1, "no_match": 1}
+    assert reg.get("greenhouse", "gongio").discovered_via == "seed:test"
+    assert reg.get("unknown", "opaque.example") is not None
+    # And the pass is resumable: running it again scans nothing.
+    again = add_domains(
+        reg, ["gong.io", "opaque.example", "telnyx.com"], client, discovered_via="seed:test"
+    )
+    assert again["scanned"] == 0 and again["skipped"] == 3

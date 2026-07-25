@@ -12,7 +12,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-Source = Literal["ashby", "greenhouse"]
+Source = Literal["ashby", "greenhouse", "lever"]
 CompSource = Literal["structured", "parsed", "none"]
 Decision = Literal["pass", "flag", "drop"]
 

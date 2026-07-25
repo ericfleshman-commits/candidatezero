@@ -8,6 +8,7 @@ whole run down at 3am.
 
 from __future__ import annotations
 
+import threading
 import time
 from collections.abc import Callable
 from typing import Protocol
@@ -18,6 +19,11 @@ from engine.config import HOST_DELAY_SECONDS, REQUEST_TIMEOUT, USER_AGENT, Compa
 from engine.models import Role
 
 DetailPredicate = Callable[[Role], bool]
+
+# Statuses worth retrying with backoff. A 429 is the host asking us to slow
+# down, and a 5xx is the host having a bad moment. Everything else is an answer.
+RETRY_STATUSES = {429, 500, 502, 503, 504}
+MAX_ATTEMPTS = 3
 
 
 class OrgNotFound(Exception):
@@ -33,6 +39,14 @@ class PoliteClient:
 
     The delay is per host, not global, so probing Ashby does not slow down
     Greenhouse. Set delay to 0 in tests.
+
+    Safe to share across threads: the registry's discovery pass runs four
+    workers, and the per-host pacing has to hold across all of them, not per
+    worker. Each caller reserves its slot under a lock and sleeps outside it.
+
+    A 429 or 5xx is retried with exponential backoff. The backoff scales off
+    the politeness delay, so a test client with delay=0 retries instantly and
+    the production client waits 1s, then 2s.
     """
 
     def __init__(self, client: httpx.Client | None = None, delay: float = HOST_DELAY_SECONDS):
@@ -43,22 +57,33 @@ class PoliteClient:
         )
         self._delay = delay
         self._last_hit: dict[str, float] = {}
+        self._lock = threading.Lock()
 
     def _wait_turn(self, url: str) -> None:
         host = httpx.URL(url).host
-        last = self._last_hit.get(host)
-        if last is not None:
-            elapsed = time.monotonic() - last
-            if elapsed < self._delay:
-                time.sleep(self._delay - elapsed)
-        self._last_hit[host] = time.monotonic()
+        with self._lock:
+            now = time.monotonic()
+            last = self._last_hit.get(host)
+            ready = now if last is None else max(now, last + self._delay)
+            self._last_hit[host] = ready
+        if ready > now:
+            time.sleep(ready - now)
+
+    def _request(self, method: str, url: str, **kwargs) -> httpx.Response:
+        for attempt in range(MAX_ATTEMPTS):
+            self._wait_turn(url)
+            try:
+                resp = self._client.request(method, url, **kwargs)
+            except httpx.HTTPError as exc:
+                raise OrgUnavailable(f"{type(exc).__name__}: {exc}") from exc
+            if resp.status_code in RETRY_STATUSES and attempt < MAX_ATTEMPTS - 1:
+                time.sleep(self._delay * 2 * (2**attempt))
+                continue
+            return resp
+        raise OrgUnavailable(f"retries exhausted at {url}")  # pragma: no cover
 
     def get(self, url: str, **kwargs) -> httpx.Response:
-        self._wait_turn(url)
-        try:
-            return self._client.get(url, **kwargs)
-        except httpx.HTTPError as exc:
-            raise OrgUnavailable(f"{type(exc).__name__}: {exc}") from exc
+        return self._request("GET", url, **kwargs)
 
     def head(self, url: str, **kwargs) -> httpx.Response:
         """Cheapest possible liveness probe: ask for the headers, not the page."""
@@ -69,7 +94,14 @@ class PoliteClient:
             raise OrgUnavailable(f"{type(exc).__name__}: {exc}") from exc
 
     def get_json(self, url: str, **kwargs) -> dict:
-        resp = self.get(url, **kwargs)
+        return self._json(self.get(url, **kwargs), url)
+
+    def post_json(self, url: str, **kwargs) -> dict:
+        """Workday's public job search only answers POST. Same manners apply."""
+        return self._json(self._request("POST", url, **kwargs), url)
+
+    @staticmethod
+    def _json(resp: httpx.Response, url: str) -> dict:
         if resp.status_code == 404:
             raise OrgNotFound(f"404 at {url}")
         if resp.status_code >= 400:

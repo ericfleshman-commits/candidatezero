@@ -32,8 +32,19 @@ location:
   nyc_tokens: [new york, nyc, brooklyn, manhattan]
   allow_remote_us: true
   # Remote qualified by a non-US region is not remote for this candidate.
-  # Unqualified "Remote" passes in v0.
   remote_exclude_regions: [emea, europe, apac, uk, canada, latam, india]
+  # A remote role must show a US signal somewhere in its location: one of these
+  # tokens (word-bounded), or a ", XX" US state code. Without one it is kept
+  # and flagged remote-geo-unverified, never dropped. This closes the gap where
+  # a role marked remote out of a non-US city sailed through as "Remote".
+  us_signal_tokens:
+    [united states, usa, u.s., us, america,
+     san francisco, austin, chicago, seattle, boston, denver, atlanta,
+     los angeles, miami, salt lake city, washington dc]
+  us_state_codes:
+    [al, ak, az, ar, ca, co, ct, de, fl, ga, hi, id, il, in, ia, ks, ky, la,
+     ma, md, me, mi, mn, mo, ms, mt, nc, nd, ne, nh, nj, nm, nv, ny, oh, ok,
+     or, pa, ri, sc, sd, tn, tx, ut, va, vt, wa, wi, wv, wy, dc]
   # Optional escape hatch: a role that fails location is kept and flagged rather
   # than dropped when the top of its band clears this number. Money moves people.
   # Remove the key to disable the exception entirely.

@@ -107,6 +107,58 @@ def test_ashby_is_remote_flag_counts_as_remote(engine):
     assert engine.location_ok(make_role(location_raw="Phoenix, AZ", is_remote=True)) is True
 
 
+# The remote geography gap ---------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "location",
+    ["Remote (US)", "Remote, United States", "Remote - USA", "Remote, NY", "Remote | Austin"],
+)
+def test_remote_with_a_us_signal_is_verified(engine, location):
+    assert engine.location_status(make_role(location_raw=location)) == "ok"
+
+
+@pytest.mark.parametrize("location", ["Remote", "Remote, Lisbon", "Remote - Worldwide"])
+def test_remote_without_a_us_signal_is_flagged_never_dropped(engine, location):
+    """The closed gap: a role marked remote out of a non-US city used to sail
+    through as if it were US remote. Now it survives, carrying a flag."""
+    role = make_role(
+        location_raw=location,
+        comp=CompRange(min=180000, max=220000, source="structured"),
+    )
+    assert engine.location_status(role) == "remote-unverified"
+
+    verdict = engine.evaluate(role)
+    assert verdict.decision == "flag"
+    assert "remote-geo-unverified" in role.flags
+    assert any("no US signal" in reason for reason in verdict.reasons)
+
+
+def test_state_codes_only_count_after_a_comma(engine):
+    """Matched bare, Indiana's "in" would make "Remote in Ireland" look American."""
+    ireland = make_role(location_raw="Remote in Ireland")
+    assert engine.location_status(ireland) == "remote-unverified"
+    assert engine.location_status(make_role(location_raw="Remote, Indianapolis, IN")) == "ok"
+
+
+def test_us_tokens_match_on_word_boundaries(engine):
+    """A bare "us" substring would otherwise turn "status" into a US signal."""
+    role = make_role(location_raw="Remote - status pending")
+    assert engine.location_status(role) == "remote-unverified"
+
+
+def test_ashby_remote_without_location_text_is_unverified(engine):
+    """Ashby can mark a role remote with an empty location string. No string,
+    no US signal, so it carries the flag."""
+    role = make_role(
+        location_raw="",
+        is_remote=True,
+        comp=CompRange(min=180000, max=220000, source="structured"),
+    )
+    assert engine.location_status(role) == "remote-unverified"
+    assert engine.evaluate(role).decision == "flag"
+
+
 # Comp ----------------------------------------------------------------------
 
 

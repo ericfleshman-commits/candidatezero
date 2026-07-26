@@ -55,6 +55,12 @@ class LocationRules(BaseModel):
     allow_remote_us: bool = True
     remote_exclude_regions: list[str] = Field(default_factory=list)
     kill_exception_comp_usd: int | None = None
+    # A remote role with none of these signals anywhere in its location is kept
+    # and flagged remote-geo-unverified. Tokens match on word boundaries;
+    # state codes only count in the ", XX" position so Indiana's "in" cannot
+    # false-positive on "Remote in Ireland".
+    us_signal_tokens: list[str] = Field(default_factory=list)
+    us_state_codes: list[str] = Field(default_factory=list)
 
 
 class CompRules(BaseModel):

@@ -57,6 +57,10 @@ class FilterEngine:
             re.compile(rf",\s*{re.escape(c.lower())}(?![a-zA-Z0-9])", re.IGNORECASE)
             for c in filters.location.us_state_codes
         ]
+        self.shape_packs = {
+            pack: [phrase_pattern(p) for p in phrases]
+            for pack, phrases in filters.shapes.items()
+        }
 
     # Title ---------------------------------------------------------------
 
@@ -139,6 +143,27 @@ class FilterEngine:
             return True
         return self.cfg.location.kill_exception_comp_usd is not None
 
+    # Shape ----------------------------------------------------------------
+
+    def shape_hits(self, role: Role) -> list[tuple[str, str]]:
+        """Every pack the JD trips, each with the exact text that matched.
+
+        Read over title plus description, because the lie this catches is
+        precisely a title that says GTM while the description asks for a
+        frontend engineer or a quota carrier. One quote per pack: the first
+        phrase to hit is evidence enough, and a JD that says quota eleven
+        times should not say it eleven times in the digest too.
+        """
+        haystack = f"{role.title}\n{role.description_text or ''}"
+        hits: list[tuple[str, str]] = []
+        for pack, patterns in self.shape_packs.items():
+            for pattern in patterns:
+                found = pattern.search(haystack)
+                if found:
+                    hits.append((pack, " ".join(found.group(0).split())))
+                    break
+        return hits
+
     # Comp ----------------------------------------------------------------
 
     def _effective_max(self, role: Role) -> int | None:
@@ -185,6 +210,13 @@ class FilterEngine:
                 reasons.append(f"only the top of the band clears {floor:,}")
         else:
             return Verdict(decision="drop", reasons=["comp"])
+
+        # Shape runs last and never drops. A hit says the JD is asking for a
+        # different job than the title claims; that is a surfaced doubt, not
+        # a verdict, so the digest line quotes the JD's own words as evidence.
+        for pack, matched in self.shape_hits(role):
+            role.flag(pack)
+            reasons.append(f'{pack}: JD says "{matched}"')
 
         decision = "flag" if role.flags else "pass"
         if decision == "pass" and not reasons:

@@ -159,6 +159,109 @@ def test_ashby_remote_without_location_text_is_unverified(engine):
     assert engine.evaluate(role).decision == "flag"
 
 
+# Shape: what the JD actually asks for ---------------------------------------
+
+CLEAN_BAND = CompRange(min=180000, max=220000, source="structured")
+
+
+@pytest.mark.parametrize(
+    "pack, description",
+    [
+        (
+            "shape-swe",
+            "You will own our CI/CD pipeline, review production code, and ship React features.",
+        ),
+        (
+            "shape-sales",
+            "Carry a quota, own pipeline generation, and bring closing experience.",
+        ),
+        (
+            "shape-junior",
+            "Perfect for early career candidates with 1-3 years of experience.",
+        ),
+        (
+            "shape-agency",
+            "Our client, a confidential company, engaged our recruiting firm for this search.",
+        ),
+    ],
+)
+def test_each_shape_pack_flags_on_jd_language(engine, pack, description):
+    """One test per pack: a hit moves PASS to FLAGGED, never to drop."""
+    role = make_role(description_text=description, comp=CLEAN_BAND)
+    verdict = engine.evaluate(role)
+
+    assert verdict.decision == "flag"
+    assert pack in role.flags
+    assert any(reason.startswith(f"{pack}:") for reason in verdict.reasons)
+
+
+def test_the_digest_line_quotes_the_exact_matched_text(engine):
+    """Not the config phrase, the JD's own spelling of it. "CI / CD" with
+    spaces is what this posting wrote, so that is what gets quoted."""
+    role = make_role(
+        description_text="We ship through a CI / CD pipeline every day.",
+        comp=CLEAN_BAND,
+    )
+    verdict = engine.evaluate(role)
+
+    assert 'shape-swe: JD says "CI / CD"' in verdict.reasons
+
+
+def test_a_role_can_carry_multiple_shape_flags(engine):
+    role = make_role(
+        description_text=(
+            "Carry a quota while shipping React dashboards. "
+            "Great for early career folks. Our client is confidential."
+        ),
+        comp=CLEAN_BAND,
+    )
+    verdict = engine.evaluate(role)
+
+    assert verdict.decision == "flag"
+    for pack in ("shape-swe", "shape-sales", "shape-junior", "shape-agency"):
+        assert pack in role.flags
+
+
+def test_shapes_read_the_title_too(engine):
+    role = make_role(title="GTM Engineer (via Staffing Partner)", comp=CLEAN_BAND)
+    engine.evaluate(role)
+    assert "shape-agency" in role.flags
+
+
+def test_shape_phrases_do_not_fire_inside_longer_words(engine):
+    """"reacting" is not react, "associates" is not associate, "quotable" is
+    not quota. Word boundaries keep the packs honest."""
+    role = make_role(
+        description_text="Reacting quickly, coordinating associates across quotable teams.",
+        comp=CLEAN_BAND,
+    )
+    verdict = engine.evaluate(role)
+
+    assert verdict.decision == "pass"
+    assert role.flags == []
+
+
+def test_a_clean_gtm_jd_stays_a_clean_pass(engine):
+    role = make_role(
+        description_text=(
+            "Own our GTM systems: CRM hygiene, routing, enrichment, and the "
+            "automation between marketing and sales."
+        ),
+        comp=CLEAN_BAND,
+    )
+    verdict = engine.evaluate(role)
+
+    assert verdict.decision == "pass"
+    assert role.flags == []
+
+
+def test_a_missing_description_is_not_a_shape_hit(engine):
+    """Greenhouse roles that never earned a detail fetch have no description.
+    No text, no evidence, no flag."""
+    role = make_role(description_text=None, comp=CLEAN_BAND)
+    assert engine.evaluate(role).decision == "pass"
+
+
 # Comp ----------------------------------------------------------------------
 
 

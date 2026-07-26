@@ -58,3 +58,78 @@ comp:
   # Unknown comp is a flag and not a failure. The NYC pay transparency law means
   # most target roles post a band, so a missing band is a question, not a no.
   floor_usd: 160000
+
+# Shape rule packs: what the role actually is, read from the JD itself. A title
+# can say GTM Engineer while the description asks for a React frontend engineer;
+# these packs catch that on the description's own words.
+#
+# Semantics: phrases are matched case-insensitively over title plus description,
+# tolerant of punctuation between words ("ci/cd" also hits "CI / CD" and
+# "ci-cd", "a/b test" hits "A/B test"). Any hit moves the role from PASS to
+# FLAGGED carrying the pack name, and the digest quotes the exact phrase that
+# matched. A role can carry several packs. Shape never hard-drops on its own.
+shapes:
+  # A software-engineer seat wearing a GTM title.
+  shape-swe:
+    - apex
+    - lightning web components
+    - lwc
+    - ci/cd
+    - production code
+    - code review
+    - code reviews
+    - langgraph
+    - react
+    - next.js
+    - nextjs
+    - a/b test
+    - a/b tests
+    - a/b testing
+    - computer science degree
+    - degree in computer science
+    - bs in computer science
+  # A quota seat wearing a GTM title.
+  shape-sales:
+    - quota
+    - quotas
+    - closing experience
+    - pipeline generation
+    - cold call
+    - cold calls
+    - cold calling
+    - ae
+    - bdr
+    - sdr
+    - account executive
+    - business development representative
+    - sales development representative
+    - uncapped commission
+    - commission-based
+    - ote
+    - on-target earnings
+  # Graded for years the target candidate left behind long ago.
+  shape-junior:
+    - 1-3 years
+    - 1 to 3 years
+    - 0-2 years
+    - 1-2 years
+    - 2-3 years
+    - early career
+    - entry level
+    - associate
+    - junior
+    - new grad
+    - recent graduate
+  # Not the employer. Staffing firms and confidential postings.
+  shape-agency:
+    - staffing
+    - our client
+    - recruiting firm
+    - recruitment agency
+    - recruiting agency
+    - search firm
+    - executive search
+    - talent agency
+    - confidential company
+    - company confidential
+    - confidential client

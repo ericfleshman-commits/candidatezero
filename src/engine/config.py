@@ -71,6 +71,9 @@ class FiltersConfig(BaseModel):
     title_families: TitleFamilies = Field(default_factory=TitleFamilies)
     location: LocationRules = Field(default_factory=LocationRules)
     comp: CompRules = Field(default_factory=CompRules)
+    # Shape rule packs: pack name to phrase list, matched case-insensitively
+    # over title plus description. A hit flags, never drops.
+    shapes: dict[str, list[str]] = Field(default_factory=dict)
 
 
 class Config(BaseModel):

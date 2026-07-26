@@ -110,9 +110,7 @@ def build_report(store: SeenStore, runs: list[dict], week_end: date) -> WeekRepo
                 if entry.public:
                     days = max((entry.closed_at - entry.first_seen).days, 1)
                     report.closed.append(
-                        ClosedRole(
-                            company=entry.company_name, title=entry.title, days_alive=days
-                        )
+                        ClosedRole(company=entry.company_name, title=entry.title, days_alive=days)
                     )
         elif entry.public and start <= entry.first_seen.date() <= week_end:
             report.new_roles.append(

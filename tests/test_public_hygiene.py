@@ -82,6 +82,14 @@ def test_private_config_is_ignored_in_practice() -> None:
     assert result.returncode == 0, f"git does not consider {probe} ignored"
 
 
+def test_every_template_is_tracked_so_the_style_scan_sees_it(files: list[str]) -> None:
+    """The style scan below walks git-tracked files. A template that never got
+    added would render public artifacts while dodging the scan entirely."""
+    on_disk = {f"templates/{p.name}" for p in (REPO_ROOT / "templates").iterdir() if p.is_file()}
+    untracked = on_disk - set(files)
+    assert untracked == set(), f"templates invisible to the style guard: {sorted(untracked)}"
+
+
 def test_no_em_dashes_or_arrows_in_tracked_text(files: list[str]) -> None:
     violations: list[str] = []
 

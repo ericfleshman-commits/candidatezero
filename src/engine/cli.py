@@ -1,4 +1,4 @@
-"""Command line: engine run | engine check-org | engine digest | engine registry.
+"""Command line: engine run | check-org | digest | newsletter | registry.
 
 One command, run by cron, writes one file. That is the whole interface. The
 registry subcommands are the exception: they maintain the org registry that
@@ -14,12 +14,14 @@ from datetime import date
 from pathlib import Path
 
 from engine import digest as digest_mod
+from engine import newsletter as newsletter_mod
 from engine.config import HOST_DELAY_SECONDS, Config, data_dir, load_config
 from engine.dedupe import load_history
 from engine.discover import add_domains, verify_registry
 from engine.pipeline import append_run_record, check_org, run_pipeline
 from engine.registry import VENDORS, Registry, registry_path
 from engine.sourcers.base import PoliteClient
+from engine.state import SeenStore
 
 
 def _describe_config(cfg: Config) -> str:
@@ -176,6 +178,26 @@ def cmd_digest(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_newsletter(args: argparse.Namespace) -> int:
+    """The weekly public report, from data the nightly runs already wrote.
+
+    No network. The file is the deliverable; the founder pastes it anywhere.
+    """
+    week_end = date.fromisoformat(args.date)
+    store = SeenStore.load(data_dir() / "seen.json")
+    runs = newsletter_mod.read_runs(data_dir() / "runs.jsonl", week_end)
+    report = newsletter_mod.build_report(store, runs, week_end)
+    path = newsletter_mod.write(report, data_dir())
+
+    print(
+        f"week {report.week_label}: {report.postings_read} postings read | "
+        f"{len(report.new_roles)} new verified | {report.total_closed} closed | "
+        f"{report.ghosts} ghosts caught"
+    )
+    print(f"newsletter: {path}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="engine",
@@ -206,6 +228,16 @@ def main(argv: list[str] | None = None) -> int:
     dig = sub.add_parser("digest", help="print a digest that was already written")
     dig.add_argument("--date", default=date.today().isoformat())
     dig.set_defaults(func=cmd_digest)
+
+    news = sub.add_parser(
+        "newsletter", help="write the weekly public report from run logs and seen-store churn"
+    )
+    news.add_argument(
+        "--date",
+        default=date.today().isoformat(),
+        help="week-ending date, YYYY-MM-DD (default: today; report covers the trailing 7 days)",
+    )
+    news.set_defaults(func=cmd_newsletter)
 
     registry = sub.add_parser("registry", help="maintain the org registry, the engine's real asset")
     reg_sub = registry.add_subparsers(dest="registry_command", required=True)

@@ -25,7 +25,9 @@ def _day(value: datetime | None) -> str:
     return value.strftime("%Y-%m-%d") if value else "unknown"
 
 
-def _env(template_dir: Path | None = None) -> Environment:
+def template_env(template_dir: Path | None = None) -> Environment:
+    """The shared jinja environment. The newsletter renders through this too,
+    so both public artifacts inherit the same strictness and filters."""
     env = Environment(
         loader=FileSystemLoader(template_dir or TEMPLATE_DIR),
         undefined=StrictUndefined,
@@ -42,7 +44,7 @@ def render(
     run_date: date | None = None,
     template_dir: Path | None = None,
 ) -> str:
-    template = _env(template_dir).get_template("digest.md.j2")
+    template = template_env(template_dir).get_template("digest.md.j2")
     body = template.render(result=result, date=(run_date or date.today()).isoformat())
     # Collapse the blank-line drift that comes out of block templating.
     while "\n\n\n" in body:

@@ -69,8 +69,19 @@ comp:
 # FLAGGED carrying the pack name, and the digest quotes the exact phrase that
 # matched. A role can carry several packs. Shape never hard-drops on its own.
 shapes:
-  # A software-engineer seat wearing a GTM title.
+  # A software-engineer seat wearing a GTM title. Named stacks first, then the
+  # generic vocabulary of SWE job ads: a JD that says "full-stack" about the
+  # candidate's own work is describing an engineer, whatever the title says.
+  # "full stack" also hits "full-stack" (separator-tolerant), same for
+  # "front end" and "front-end".
   shape-swe:
+    - software engineer
+    - full stack
+    - frontend
+    - front end
+    - backend
+    - back end
+    - typescript
     - apex
     - lightning web components
     - lwc

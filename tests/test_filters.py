@@ -207,6 +207,20 @@ def test_the_digest_line_quotes_the_exact_matched_text(engine):
     assert 'shape-swe: JD says "CI / CD"' in verdict.reasons
 
 
+def test_swe_vocabulary_goes_beyond_named_stacks(engine):
+    """OpenAI's Product Engineer, GTM Growth Engineering JD names no stack at
+    all; it says "full-stack" and "frontend" instead. The generic vocabulary
+    of SWE ads has to hit too, hyphenated or not."""
+    role = make_role(
+        description_text="Own full-stack product slices, from frontend to backend APIs.",
+        comp=CLEAN_BAND,
+    )
+    verdict = engine.evaluate(role)
+
+    assert "shape-swe" in role.flags
+    assert 'shape-swe: JD says "full-stack"' in verdict.reasons
+
+
 def test_a_role_can_carry_multiple_shape_flags(engine):
     role = make_role(
         description_text=(

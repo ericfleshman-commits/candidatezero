@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from conftest import make_role
+from conftest import load_fixture, make_role
 from engine.filters import FilterEngine, normalize_title
 from engine.models import CompRange
 
@@ -260,6 +260,40 @@ def test_a_missing_description_is_not_a_shape_hit(engine):
     No text, no evidence, no flag."""
     role = make_role(description_text=None, comp=CLEAN_BAND)
     assert engine.evaluate(role).decision == "pass"
+
+
+def test_manifest_gtm_engineer_is_flagged_shape_swe(engine):
+    """The posting that motivated the packs, recorded live on 2026-07-25.
+
+    Manifest's GTM Engineer is customer-facing web development with A/B
+    testing: a software-engineer seat wearing a GTM title. Title, location,
+    and band are all clean, so before shape rules this was a clean PASS. The
+    engine must read the JD and doubt it on its own.
+    """
+    job = load_fixture("manifest_gtm_engineer.json")
+    salary = job["compensation"]["salary"]
+    role = make_role(
+        id="ashby:manifest-os:d2619b83",
+        org_slug="manifest-os",
+        company_name="Manifest",
+        title=job["title"],
+        location_raw=job["location"],
+        is_remote=job["isRemote"],
+        description_text=job["descriptionPlain"],
+        url=job["jobUrl"],
+        comp=CompRange(
+            min=salary["minValue"],
+            max=salary["maxValue"],
+            currency=salary["currencyCode"],
+            source="structured",
+        ),
+    )
+    verdict = engine.evaluate(role)
+
+    assert verdict.decision == "flag"
+    assert "shape-swe" in role.flags
+    quoted = [r for r in verdict.reasons if r.startswith("shape-swe:")]
+    assert quoted and 'JD says "' in quoted[0]
 
 
 # Comp ----------------------------------------------------------------------

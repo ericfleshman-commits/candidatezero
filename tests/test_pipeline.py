@@ -218,6 +218,9 @@ def test_append_run_record_writes_one_json_line(tmp_path):
         "eliminated": {"title": 900, "location": 20, "comp": 10, "liveness": 3},
         "survivors": 4,
         "flagged": 0,
+        "suppressed": 0,
+        "zombies": 3,
+        "dead_orgs": 0,
         "duration_seconds": 61.2,
     }
 

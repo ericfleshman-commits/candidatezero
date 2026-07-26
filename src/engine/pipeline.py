@@ -217,6 +217,9 @@ def append_run_record(
         "eliminated": dict(result.funnel_stages()),
         "survivors": result.survivors,
         "flagged": len(result.flagged),
+        "suppressed": len(result.suppressed),
+        "zombies": result.drop_counts.get("zombie", 0),
+        "dead_orgs": len(result.warnings),
         "duration_seconds": round(result.duration_seconds, 1),
     }
     with path.open("a", encoding="utf-8") as fh:

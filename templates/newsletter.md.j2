@@ -1,0 +1,39 @@
+# The Verified GTM Jobs Report
+
+## Week {{ report.week_label }}, {{ report.start.isoformat() }} to {{ report.end.isoformat() }}
+
+Every number below comes from nightly checks against employers' own applicant tracking systems. This is a machine's honest count, not a vibe.
+
+This week the engine read {{ "{:,}".format(report.postings_read) }} postings across {{ report.orgs_scanned }} companies, held {{ report.verified_live }} roles as verified live, and caught {{ report.ghosts }} ghost listings.
+
+## New verified roles this week
+
+{% if report.new_roles %}
+Every role below cleared senior comp floors and a nightly liveness check on the employer's own system. Links go straight to the employer's ATS, never through an aggregator.
+
+{% for role in report.new_roles %}
+- **{{ role.company }}: {{ role.title }}**. Comp: {{ role.comp_band }}. Location: {{ role.location }}. Apply: {{ role.url }}
+{% endfor %}
+{% else %}
+A quiet week: no new verified roles. We publish that honestly rather than padding the list.
+{% endif %}
+
+## Closed this week
+
+{% if report.total_closed %}
+{{ report.total_closed }} {{ "role" if report.total_closed == 1 else "roles" }} disappeared from the employer boards we watch. If you applied to one of these companies recently and heard nothing, the silence may not be about you. The role may simply be gone.
+{% if report.closed %}
+
+Previously verified roles that closed:
+
+{% for role in report.closed %}
+- {{ role.company }}: {{ role.title }}, alive {{ role.days_alive }} {{ "day" if role.days_alive == 1 else "days" }}
+{% endfor %}
+{% endif %}
+{% else %}
+No roles closed this week on the boards we watch.
+{% endif %}
+
+## Methodology
+
+Every listing above was re-verified on the employer's own applicant tracking system during the most recent nightly run. The engine never applies for anyone.

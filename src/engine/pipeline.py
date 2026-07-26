@@ -18,8 +18,9 @@ from datetime import UTC, date, datetime
 from pathlib import Path
 
 from engine.config import CompanyEntry, Config, data_dir
+from engine.dedupe import Deduper, HistoryConfig
 from engine.filters import FilterEngine
-from engine.models import OrgWarning, Role, RunResult
+from engine.models import OrgWarning, Role, RunResult, SuppressedRole
 from engine.registry import Registry
 from engine.sourcers.ashby import AshbySourcer
 from engine.sourcers.base import OrgNotFound, OrgUnavailable, PoliteClient
@@ -81,9 +82,11 @@ def run_pipeline(
     do_verify: bool = True,
     now: datetime | None = None,
     registry: Registry | None = None,
+    history: HistoryConfig | None = None,
 ) -> RunResult:
     stamp = now or datetime.now(UTC)
     filters = FilterEngine(cfg.filters)
+    deduper = Deduper(history.entries) if history and history.entries else None
     sourcers = build_sourcers(client)
     result = RunResult()
 
@@ -132,9 +135,7 @@ def run_pipeline(
         first_run = not store.roles
         new_ids, closed_entries = store.reconcile(all_roles, scanned_org_keys, now=stamp)
         if not first_run:
-            result.closed = [
-                f"{e.company_name}: {e.title} ({e.url})" for e in closed_entries
-            ]
+            result.closed = [f"{e.company_name}: {e.title} ({e.url})" for e in closed_entries]
 
     # Funnel stages 1 to 3: title, then location, then comp. FilterEngine
     # evaluates in exactly that order and its drop reason names the stage that
@@ -150,9 +151,33 @@ def run_pipeline(
             continue
         survivors.append(role)
 
-    # Funnel stage 4: liveness, and only for roles that survived every filter.
-    # Any model call this engine ever grows belongs after this line.
+    # Between comp and liveness sits dedupe: a dict lookup against history,
+    # cheaper than any probe. A role the owner already ruled on is suppressed
+    # here, before the engine spends a request verifying it, and lands in the
+    # digest's Suppressed section rather than vanishing. It is checked every
+    # night, not just when new, because a standing ruling has no expiry.
     for role in survivors:
+        if deduper is not None:
+            entry = deduper.match(role)
+            if entry is not None:
+                result.suppressed.append(
+                    SuppressedRole(
+                        company=role.company_name,
+                        title=role.title,
+                        status=entry.status,
+                        date=entry.date,
+                        reason=entry.reason,
+                    )
+                )
+                continue
+            note = deduper.company_note(role)
+            if note is not None:
+                # Live role at a company with history: surfaced, but flagged.
+                role.flag("history-at-company")
+                role.verdict.reasons.append(note)
+
+        # Funnel stage 4: liveness, and only for roles that survived every
+        # filter. Any model call this engine ever grows belongs after this line.
         if do_verify:
             liveness = verify(role, client, board_ids=board_ids)
             if not liveness.live:

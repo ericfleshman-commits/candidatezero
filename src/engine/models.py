@@ -120,6 +120,17 @@ class Role(BaseModel):
             self.flags.append(name)
 
 
+class SuppressedRole(BaseModel):
+    """A live role the owner already ruled on. It renders as one line in the
+    digest's Suppressed section and never as PASS or FLAG."""
+
+    company: str
+    title: str
+    status: str
+    date: str | None = None
+    reason: str | None = None
+
+
 class OrgWarning(BaseModel):
     """A board that did not answer. Footer material, never a crash."""
 
@@ -136,6 +147,9 @@ class RunResult(BaseModel):
     kept: list[Role] = Field(default_factory=list)
     flagged: list[Role] = Field(default_factory=list)
     drop_counts: dict[str, int] = Field(default_factory=dict)
+    # Roles the owner already ruled on: applied, rejected, dq'd, blacklisted.
+    # Kept as lines, not counts, because each one is a decision worth recalling.
+    suppressed: list[SuppressedRole] = Field(default_factory=list)
     warnings: list[OrgWarning] = Field(default_factory=list)
     closed: list[str] = Field(default_factory=list)
     # Survivors that are not new tonight. Counted, not printed, so a nightly

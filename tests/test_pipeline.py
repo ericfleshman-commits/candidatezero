@@ -42,9 +42,7 @@ def _ashby_only(filters_cfg) -> Config:
 @respx.mock
 def test_run_produces_a_digest_worth_of_result(ashby_board, filters_cfg, client, tmp_path):
     respx.get(ASHBY).mock(return_value=httpx.Response(200, json=ashby_board))
-    respx.head(url__regex=r"https://jobs\.ashbyhq\.com/.*").mock(
-        return_value=httpx.Response(200)
-    )
+    respx.head(url__regex=r"https://jobs\.ashbyhq\.com/.*").mock(return_value=httpx.Response(200))
 
     result = run_pipeline(_ashby_only(filters_cfg), client, root=tmp_path, use_state=False)
 
@@ -250,3 +248,90 @@ def test_check_org_reports_a_slug_that_exists_nowhere(client):
     findings = check_org("nope", client)
     assert len(findings) == 5
     assert all(f["status"] == "404" for f in findings)
+
+
+@respx.mock
+def test_a_ruled_out_role_is_suppressed_never_kept(ashby_board, filters_cfg, client, tmp_path):
+    """Exhibit A. A dq'd company's roles land in suppressed, not in PASS or FLAG,
+    and the engine does not spend a liveness probe on them."""
+    from engine.dedupe import HistoryConfig, HistoryEntry
+
+    respx.get(ASHBY).mock(return_value=httpx.Response(200, json=ashby_board))
+    head_route = respx.head(url__regex=r"https://jobs\.ashbyhq\.com/.*").mock(
+        return_value=httpx.Response(200)
+    )
+    history = HistoryConfig(
+        entries=[
+            HistoryEntry(
+                company="Wealth.com",
+                status="dq",
+                role="GTM Engineer",
+                date="2026-07-16",
+                reason="software engineer seat in costume",
+            )
+        ]
+    )
+
+    result = run_pipeline(
+        _ashby_only(filters_cfg), client, root=tmp_path, use_state=False, history=history
+    )
+
+    surviving_companies = {r.company_name for r in result.kept + result.flagged}
+    assert "Wealth.com" not in surviving_companies
+    suppressed_titles = {s.title for s in result.suppressed}
+    assert "GTM Engineer" in suppressed_titles
+    first = result.suppressed[0]
+    assert first.status == "dq" and first.reason == "software engineer seat in costume"
+    assert head_route.call_count == 0  # every survivor was suppressed before verify
+
+
+@respx.mock
+def test_role_level_history_leaves_other_roles_live_but_flagged(
+    ashby_board, filters_cfg, client, tmp_path
+):
+    from engine.dedupe import HistoryConfig, HistoryEntry
+
+    respx.get(ASHBY).mock(return_value=httpx.Response(200, json=ashby_board))
+    respx.head(url__regex=r"https://jobs\.ashbyhq\.com/.*").mock(return_value=httpx.Response(200))
+    # The fixture board has both a GTM Engineer and a Revenue Systems Engineer.
+    history = HistoryConfig(
+        entries=[
+            HistoryEntry(
+                company="Wealth.com", status="applied", role="GTM Engineer", date="2026-07-01"
+            )
+        ]
+    )
+
+    result = run_pipeline(
+        _ashby_only(filters_cfg), client, root=tmp_path, use_state=False, history=history
+    )
+
+    assert {s.title for s in result.suppressed} == {"GTM Engineer"}
+    live = {r.title: r for r in result.kept + result.flagged}
+    assert "Revenue Systems Engineer" in live
+    other = live["Revenue Systems Engineer"]
+    assert "history-at-company" in other.flags
+    assert any("history at this company: applied" in r for r in other.verdict.reasons)
+
+
+@respx.mock
+def test_suppression_holds_on_every_run_not_just_the_first(
+    ashby_board, filters_cfg, client, tmp_path
+):
+    """A standing ruling has no expiry: a suppressed role is reported every
+    night, even after the seen-store knows it, and never leaks into still_open."""
+    from engine.dedupe import HistoryConfig, HistoryEntry
+
+    respx.get(ASHBY).mock(return_value=httpx.Response(200, json=ashby_board))
+    respx.head(url__regex=r"https://jobs\.ashbyhq\.com/.*").mock(return_value=httpx.Response(200))
+    history = HistoryConfig(entries=[HistoryEntry(company="Wealth.com", status="blacklist")])
+
+    first = run_pipeline(
+        _ashby_only(filters_cfg), client, root=tmp_path, use_state=True, history=history
+    )
+    second = run_pipeline(
+        _ashby_only(filters_cfg), client, root=tmp_path, use_state=True, history=history
+    )
+
+    assert first.suppressed and len(second.suppressed) == len(first.suppressed)
+    assert second.kept == [] and second.flagged == [] and second.still_open == 0

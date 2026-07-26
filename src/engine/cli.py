@@ -15,6 +15,7 @@ from pathlib import Path
 
 from engine import digest as digest_mod
 from engine.config import HOST_DELAY_SECONDS, Config, data_dir, load_config
+from engine.dedupe import load_history
 from engine.discover import add_domains, verify_registry
 from engine.pipeline import append_run_record, check_org, run_pipeline
 from engine.registry import VENDORS, Registry, registry_path
@@ -29,6 +30,12 @@ def _describe_config(cfg: Config) -> str:
 def cmd_run(args: argparse.Namespace) -> int:
     cfg = load_config()
     print(f"config: {_describe_config(cfg)}")
+
+    history = load_history()
+    if history.entries:
+        print(f"history: {len(history.entries)} entries from {history.source}")
+    else:
+        print("history: none, dedupe disabled")
 
     registry = Registry.load(registry_path())
     reg = registry if registry.records else None
@@ -47,6 +54,7 @@ def cmd_run(args: argparse.Namespace) -> int:
             include_open=args.include_open,
             do_verify=not args.no_verify,
             registry=reg,
+            history=history,
         )
     result.duration_seconds = time.monotonic() - start
 
@@ -56,7 +64,7 @@ def cmd_run(args: argparse.Namespace) -> int:
     print(
         f"orgs scanned: {result.orgs_scanned} | roles seen: {result.roles_seen} | "
         f"new and kept: {len(result.kept)} | flagged: {len(result.flagged)} | "
-        f"still open: {result.still_open}"
+        f"suppressed: {len(result.suppressed)} | still open: {result.still_open}"
     )
     funnel = " | ".join(f"{stage}={count}" for stage, count in result.funnel_stages())
     print(f"funnel eliminations: {funnel}")

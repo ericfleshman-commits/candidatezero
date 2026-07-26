@@ -27,7 +27,7 @@ import re
 from typing import Literal
 
 import yaml
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from engine.config import resolve
 from engine.filters import normalize_title
@@ -83,7 +83,14 @@ class HistoryEntry(BaseModel):
     role is optional on purpose. Without one the entry matches every role at
     the company, because a ruling you cannot scope to a title is a ruling on
     the company. With one, role-level statuses scope to that title family.
+
+    Unknown keys are an error, not a shrug. A flow-style yaml entry with an
+    unquoted comma in its reason parses into bogus extra keys; swallowing them
+    would silently truncate a ruling, which is the exact failure this module
+    exists to prevent.
     """
+
+    model_config = ConfigDict(extra="forbid")
 
     company: str
     status: Status

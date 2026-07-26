@@ -8,7 +8,9 @@ its owner already ruled on.
 
 from __future__ import annotations
 
+import pytest
 import yaml
+from pydantic import ValidationError
 
 from conftest import REPO_ROOT, make_role
 from engine.dedupe import (
@@ -213,3 +215,11 @@ def test_load_history_private_beats_example(tmp_path):
 
     assert cfg.source == "private"
     assert [e.company for e in cfg.entries] == ["Real Co"]
+
+
+def test_a_malformed_entry_fails_loudly_not_silently():
+    """An unquoted comma in a flow-style reason parses into bogus extra keys.
+    Swallowing them would silently truncate a ruling; refuse instead."""
+    raw = yaml.safe_load("history:\n  - { company: Acme, status: dq, reason: one, two }\n")
+    with pytest.raises(ValidationError):
+        parse_history(raw)

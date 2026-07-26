@@ -31,7 +31,18 @@ class SeenEntry(BaseModel):
     url: str = ""
     first_seen: datetime
     last_seen: datetime
+    # Set when the role vanishes from a board that answered. The weekly report
+    # publishes this churn, and the same mechanism is the future per-user
+    # "closure by design" feature: telling a person the role they applied to is
+    # gone, so the silence they are getting stops being about them.
     closed_at: datetime | None = None
+    # Public-report fields, set only for roles that cleared every filter and
+    # the liveness probe with no flags. comp_band is the employer's own
+    # published band, already rendered for humans. The store never records WHY
+    # anything was flagged or suppressed; those reasons stay private.
+    public: bool = False
+    comp_band: str = ""
+    location: str = ""
 
 
 class SeenStore(BaseModel):
@@ -100,3 +111,23 @@ class SeenStore(BaseModel):
             closed.append(entry)
 
         return new_ids, closed
+
+    def record_public(self, roles: list[Role]) -> None:
+        """Mark roles fit for the public weekly report.
+
+        Only clean survivors belong here. A flagged role is refused even if a
+        caller passes one, because flags encode the operator's private rules
+        and nothing on the store's public side may depend on them.
+        """
+        for role in roles:
+            if role.flags:
+                continue
+            entry = self.roles.get(role.id)
+            if entry is None:
+                continue
+            entry.public = True
+            entry.comp_band = role.comp.human()
+            location = role.location_raw or "not stated"
+            if role.is_remote and "remote" not in location.lower():
+                location += " (remote)"
+            entry.location = location

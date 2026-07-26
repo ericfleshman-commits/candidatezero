@@ -194,6 +194,9 @@ def run_pipeline(
             result.kept.append(role)
 
     if store is not None and seen_path is not None:
+        # Only clean survivors get public-report fields. Flagged roles carry
+        # the operator's private rules and never reach the store's public side.
+        store.record_public(result.kept)
         store.save(seen_path)
 
     return result

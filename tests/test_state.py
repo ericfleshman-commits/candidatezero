@@ -104,6 +104,61 @@ def test_a_corrupt_store_does_not_crash_a_3am_run(tmp_path):
     assert store.roles == {}
 
 
+def test_record_public_marks_a_clean_survivor_with_its_public_fields():
+    from engine.models import CompRange
+
+    store = SeenStore()
+    role = make_role(
+        comp=CompRange(min=180000, max=240000, currency="USD", source="structured"),
+        is_remote=True,
+    )
+    store.reconcile([role], SCANNED, now=MONDAY)
+    store.record_public([role])
+
+    entry = store.roles[role.id]
+    assert entry.public is True
+    assert entry.comp_band == "$180,000 to $240,000"
+    assert entry.location == "New York City (remote)"
+
+
+def test_record_public_refuses_a_flagged_role():
+    """Flags encode the operator's private rules. Even if a caller slips a
+    flagged role in, nothing about it may reach the store's public side."""
+    store = SeenStore()
+    role = make_role()
+    role.flag("location-exception-comp")
+    store.reconcile([role], SCANNED, now=MONDAY)
+    store.record_public([role])
+
+    assert store.roles[role.id].public is False
+    assert store.roles[role.id].comp_band == ""
+
+
+def test_record_public_survives_a_role_the_store_never_saw():
+    store = SeenStore()
+    store.record_public([make_role()])
+    assert store.roles == {}
+
+
+def test_public_marks_round_trip_and_old_stores_load_without_them(tmp_path):
+    """The fields are new; a seen.json written before they existed must load."""
+    path = tmp_path / "seen.json"
+    store = SeenStore()
+    store.reconcile([make_role()], SCANNED, now=MONDAY)
+    raw = store.model_dump_json()
+    # Simulate the pre-newsletter store shape by stripping the new fields.
+    import json
+
+    data = json.loads(raw)
+    for entry in data["roles"].values():
+        for field in ("public", "comp_band", "location"):
+            entry.pop(field)
+    path.write_text(json.dumps(data), encoding="utf-8")
+
+    reloaded = SeenStore.load(path)
+    assert reloaded.roles["ashby:acme:1"].public is False
+
+
 def test_ids_from_two_atss_cannot_collide():
     """Greenhouse and Ashby both hand out ids. The namespace is what keeps them apart."""
     from engine.models import Role

@@ -2,20 +2,76 @@
 # The real file lives at config/private/history.yaml and is gitignored, because
 # where you applied and who rejected you is nobody's business but yours.
 #
-# Night 1 does not read this file. It exists now so the shape is fixed before the
-# dedupe pass is built on top of it. Ground truth for these lists is the
+# The dedupe pass reads this file. Its one promise: the engine never resurfaces
+# a role you already ruled on. Ground truth for these entries is the
 # confirmation mail in your inbox, exported by hand for now.
+#
+# One entry per ruling. status is required, everything else is optional.
+#
+#   status: applied | interviewing | rejected | dq | blacklist
+#
+# dq and blacklist are company-level: every role from that company is suppressed,
+# at any title, for any money. blacklist is the hardest rule in the engine and
+# the only one that outranks comp. dq is the same suppression with a softer
+# name: you ruled the company out, usually because its roles are not what they
+# say they are.
+#
+# applied, interviewing and rejected are role-level: only the matching role is
+# suppressed. A different role at the same company stays live and carries an
+# informational history-at-company flag, because a second role at a company
+# already talking to you is a signal, not noise. Omit role and the entry
+# matches every role at the company, since a ruling with no title is a ruling
+# on the company.
+#
+# Matching is by normalized company name: lowercased, punctuation stripped,
+# trailing Inc/Labs/HQ/.com/.ai dropped. "Globex Labs", "globex.ai" and
+# "Globex, Inc." are all the same company. Role matching is by title family:
+# "GTM Engineer" here matches "Senior GTM Engineer" on a board.
+#
+# Suppressed roles appear in the digest's Suppressed section, one line each,
+# never as PASS or FLAG.
 
-# Already applied. Suppressed from the digest so the same role does not resurface.
-applied: [Acme Systems, Northwind Labs, Contoso Data]
+history:
+  # Already applied. The role is suppressed so it does not resurface; the date
+  # and reason are printed in the Suppressed section so 7am-you remembers why.
+  - company: Acme Systems
+    status: applied
+    role: GTM Engineer
+    date: 2026-07-01
+    reason: direct application, confirmation in inbox
 
-# Live conversations. Kept visible: a second role at a company already talking to
-# you is a signal, not noise.
-interviewing: [Initech]
+  # Live conversation. The matching role is suppressed as noise; any second
+  # role at Initech stays visible and flagged.
+  - company: Initech
+    status: interviewing
+    role: RevOps Engineer
+    date: 2026-07-10
+    reason: onsite scheduled
 
-# Passed on you, or you passed on them. Suppressed.
-rejected: [Globex, Umbrella Analytics]
+  # Passed on you, or you passed on them.
+  - company: Globex
+    status: rejected
+    role: GTM Engineer
+    date: 2026-06-20
+    reason: form rejection after final round
 
-# Never show me this company again, at any title, for any money. Hardest rule in
-# the engine and the only one that outranks comp.
-blacklist_companies: [Globex]
+  # Ruled out on the role's actual shape. Company-level: suppresses everything.
+  - company: Northwind Labs
+    status: dq
+    role: GTM Engineer
+    date: 2026-07-05
+    reason: software engineer seat in costume
+
+  # Never show me this company again, at any title, for any money.
+  - company: Umbrella Analytics
+    status: blacklist
+    reason: agency middleman posting ghost roles
+
+# The legacy flat-list schema still loads. Each name becomes an entry with the
+# given status and no role, date, or reason, which makes every one of these
+# rulings company-level.
+#
+# applied: [Contoso Data]
+# interviewing: []
+# rejected: []
+# blacklist_companies: []

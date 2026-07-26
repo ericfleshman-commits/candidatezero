@@ -43,6 +43,20 @@ Surfaced, not trusted. Adjacent title families, missing bands, and roles where o
 {% else %}
 Nothing flagged tonight.
 {% endif %}
+{% if result.suppressed %}
+
+## Suppressed
+
+Roles you already ruled on. Listed so the ruling is visible, never as PASS or FLAG.
+
+{% for s in result.suppressed[:15] %}
+- {{ s.company }}: {{ s.title }} ({{ s.status }}{% if s.date %} {{ s.date }}{% endif %}){% if s.reason %}, {{ s.reason }}{% endif %}
+
+{% endfor %}
+{% if result.suppressed|length > 15 %}
+- and {{ result.suppressed|length - 15 }} more suppressed
+{% endif %}
+{% endif %}
 {% if result.closed %}
 
 ## Closed since last run
@@ -72,6 +86,7 @@ Dropped, by reason:
 {% else %}
 - nothing dropped
 {% endif %}
+- suppressed by history: {{ result.suppressed|length }}
 {% if result.warnings %}
 
 Org warnings:

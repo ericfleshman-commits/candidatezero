@@ -10,7 +10,7 @@ from datetime import UTC, datetime
 
 from conftest import make_role
 from engine.digest import render
-from engine.models import CompRange, OrgWarning, RunResult, Verdict
+from engine.models import CompRange, OrgWarning, RunResult, SuppressedRole, Verdict
 
 
 def _result() -> RunResult:
@@ -116,3 +116,67 @@ def test_closed_roles_are_listed_when_present():
 
     assert "## Closed since last run" in body
     assert "Acme: GTM Engineer" in body
+
+
+def _suppressed(n: int = 1) -> list[SuppressedRole]:
+    return [
+        SuppressedRole(
+            company=f"Company {i}",
+            title="GTM Engineer",
+            status="dq",
+            date="2026-07-16",
+            reason="software engineer seat in costume",
+        )
+        for i in range(n)
+    ]
+
+
+def test_suppressed_roles_are_one_line_each_never_pass_or_flag():
+    """The Exhibit A rendering: a suppressed Manifest lives in its own section,
+    one line with status, date and reason, and nowhere above it."""
+    result = _result()
+    result.kept = []
+    result.flagged = []
+    result.suppressed = [
+        SuppressedRole(
+            company="Manifest",
+            title="GTM Engineer",
+            status="dq",
+            date="2026-07-16",
+            reason="software engineer seat in costume",
+        )
+    ]
+    body = render(result, run_date=datetime(2026, 7, 25).date())
+
+    assert "## Suppressed" in body
+    section = body.split("## Suppressed")[1].split("## Footer")[0]
+    assert "- Manifest: GTM Engineer (dq 2026-07-16), software engineer seat in costume" in section
+    # Nothing suppressed leaks into the PASS or FLAG sections above.
+    assert "Manifest" not in body.split("## Suppressed")[0]
+
+
+def test_suppressed_section_is_absent_when_empty():
+    body = render(_result(), run_date=datetime(2026, 7, 25).date())
+    assert "## Suppressed" not in body
+
+
+def test_suppressed_caps_at_fifteen_lines_and_counts_the_overflow():
+    result = _result()
+    result.suppressed = _suppressed(20)
+    section = render(result, run_date=datetime(2026, 7, 25).date()).split("## Suppressed")[1]
+    section = section.split("## Footer")[0]
+
+    assert section.count("- Company") == 15
+    assert "and 5 more suppressed" in section
+
+
+def test_footer_counts_the_suppressed():
+    result = _result()
+    result.suppressed = _suppressed(3)
+    footer = render(result, run_date=datetime(2026, 7, 25).date()).split("## Footer")[1]
+    assert "suppressed by history: 3" in footer
+
+
+def test_footer_suppressed_count_is_zero_without_history():
+    footer = render(_result(), run_date=datetime(2026, 7, 25).date()).split("## Footer")[1]
+    assert "suppressed by history: 0" in footer

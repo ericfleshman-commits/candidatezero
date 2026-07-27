@@ -52,6 +52,20 @@ def test_digest_prints_kept_roles_in_full():
     assert "band clears 160,000" in body
 
 
+def test_header_says_new_tonight_and_clearing_all_filters():
+    """The header once printed "Surviving: N" where N meant new-to-the-seen-store,
+    while the footer's "survived" meant everything clearing the filters. Two
+    meanings sharing one word produced a 33-vs-1 scare. The header now names
+    both numbers."""
+    result = _result()
+    result.still_open = 3
+    header = render(result, run_date=datetime(2026, 7, 16).date()).split("## New verified roles")[0]
+
+    assert "New tonight: 2" in header  # 1 kept + 1 flagged, new to the seen store
+    assert "Clearing all filters: 5" in header  # the footer's survivor count, same meaning
+    assert "Surviving:" not in header
+
+
 def test_digest_separates_flagged_from_verified():
     body = render(_result(), run_date=datetime(2026, 7, 16).date())
     new_section = body.split("## Flagged")[0]

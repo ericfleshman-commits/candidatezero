@@ -51,14 +51,47 @@ _PUNCT = re.compile(r"[^a-z0-9]+")
 # Trailing tokens that are branding, not identity. "Wealth.com" and "Wealth"
 # are the same company; so are "Tonic AI" and "Tonic", "Listen Labs" and
 # "Listen". Stripped from the end only, and never down to an empty name.
-_SUFFIX_TOKENS = frozenset({"inc", "labs", "hq", "com", "ai"})
+_SUFFIX_TOKENS = frozenset({"inc", "labs", "hq", "com", "ai", "app", "io", "co"})
+
+# Leading tokens that are domain-name costume, not identity. Exhibit B,
+# 2026-07-26: Profound's board lives at the slug "Tryprofound", so the digest
+# flagged a company its owner had already applied to. "Try", "get" and friends
+# are how startups dress a taken name into an available domain.
+_PREFIX_TOKENS = frozenset({"try", "get", "join", "use", "hey", "the"})
+
+# Glued forms ("Tryprofound", "ProfoundHQ") are only unstuck when what remains
+# is at least this long. The guard is what keeps Theory, Getty, Heyday, Useful
+# and Cisco being themselves rather than ory, ty, day, ful and cis.
+_MIN_STEM = 4
+
+
+def _unstick(token: str, prefixes: frozenset[str], suffixes: frozenset[str]) -> str:
+    for prefix in prefixes:
+        if token.startswith(prefix) and len(token) - len(prefix) >= _MIN_STEM:
+            token = token[len(prefix) :]
+            break
+    for suffix in suffixes:
+        if token.endswith(suffix) and len(token) - len(suffix) >= _MIN_STEM:
+            token = token[: -len(suffix)]
+            break
+    return token
 
 
 def normalize_company(name: str) -> str:
-    """Lowercase, depunctuate, and drop trailing Inc/Labs/HQ/.com/.ai tokens."""
+    """Lowercase, depunctuate, drop branding prefixes and suffixes.
+
+    Token-level first ("The Trade Desk", "Profound HQ"), then glued
+    ("Tryprofound", "ProfoundHQ"). Both sides of every comparison go through
+    here, so an over-strip stays consistent and still matches itself; the
+    _MIN_STEM guard is what keeps over-strips rare. Never strips to nothing.
+    """
     tokens = _PUNCT.sub(" ", (name or "").lower()).split()
     while len(tokens) > 1 and tokens[-1] in _SUFFIX_TOKENS:
         tokens.pop()
+    while len(tokens) > 1 and tokens[0] in _PREFIX_TOKENS:
+        tokens.pop(0)
+    if len(tokens) == 1:
+        tokens[0] = _unstick(tokens[0], _PREFIX_TOKENS, _SUFFIX_TOKENS)
     return " ".join(tokens)
 
 

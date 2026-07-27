@@ -52,6 +52,32 @@ def test_normalize_company_is_caseless_and_punctuation_blind():
     assert normalize_company("WEALTH-COM") == normalize_company("wealth.com")
 
 
+def test_normalize_company_strips_domain_costume_prefixes():
+    """Exhibit B: Profound's board lives at the slug "Tryprofound". The glued
+    prefix comes off, so the board name and the history name meet."""
+    assert normalize_company("Tryprofound") == "profound"
+    assert normalize_company("Getcabal") == "cabal"
+    assert normalize_company("Joinpaddle") == "paddle"
+    assert normalize_company("The Trade Desk") == "trade desk"
+
+
+def test_normalize_company_strips_glued_and_new_suffixes():
+    assert normalize_company("ProfoundHQ") == "profound"
+    assert normalize_company("Portainer.io") == "portainer"
+    assert normalize_company("Clay App") == "clay"
+    assert normalize_company("Notion Co") == "notion"
+
+
+def test_normalize_company_leaves_short_stems_alone():
+    """Theory is not "ory" and Getty is not "ty". A glued strip only happens
+    when at least four characters of name remain."""
+    assert normalize_company("Getty") == "getty"
+    assert normalize_company("Theory") == "theory"
+    assert normalize_company("Heyday") == "heyday"
+    assert normalize_company("Useful") == "useful"
+    assert normalize_company("Cisco") == "cisco"
+
+
 # Title family matching ----------------------------------------------------
 
 
@@ -143,6 +169,16 @@ def test_entry_without_a_role_rules_on_the_whole_company():
 def test_company_match_survives_branding_differences():
     d = _deduper(HistoryEntry(company="Wealth.com", status="rejected", role="GTM Engineer"))
     assert d.match(make_role(company_name="Wealth", title="GTM Engineer")) is not None
+
+
+def test_tryprofound_board_matches_profound_history():
+    """The real miss from the 2026-07-25 run: Profound was applied-to, but the
+    board's display name is Tryprofound and the digest flagged it as new."""
+    d = _deduper(HistoryEntry(company="Profound", status="applied", role="GTM Engineer"))
+    assert d.match(make_role(company_name="Tryprofound", title="GTM Engineer")) is not None
+    # And the same connection made from the other side.
+    d2 = _deduper(HistoryEntry(company="Tryprofound", status="applied", role="GTM Engineer"))
+    assert d2.match(make_role(company_name="Profound", title="GTM Engineer")) is not None
 
 
 # Loading ------------------------------------------------------------------

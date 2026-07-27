@@ -153,6 +153,11 @@ def write(report: BoardReport, data_dir: Path) -> Path:
     path = data_dir / "board" / "index.html"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(render(report), encoding="utf-8")
+    # Strict CSP hosts (the portfolio blocks inline style) need the stylesheet
+    # as a same-origin file, so it ships next to the page every render.
+    css = Path(__file__).resolve().parent.parent.parent / "templates" / "board.css"
+    if css.exists():
+        (path.parent / "board.css").write_text(css.read_text(), encoding="utf-8")
     return path
 
 

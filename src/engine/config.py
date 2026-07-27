@@ -20,7 +20,7 @@ PRIVATE_DIR = REPO_ROOT / "config" / "private"
 EXAMPLE_DIR = REPO_ROOT / "config" / "example"
 DATA_DIR = REPO_ROOT / "data"
 
-USER_AGENT = "candidate-zero/0.1 (+https://github.com/ericfleshman-commits/candidate-zero)"
+USER_AGENT = "candidatezero/0.1 (+https://github.com/ericfleshman-commits/candidatezero)"
 REQUEST_TIMEOUT = 20.0
 HOST_DELAY_SECONDS = 0.5
 

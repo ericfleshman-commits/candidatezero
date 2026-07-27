@@ -25,7 +25,7 @@ wheels = [
 ]
 
 [[package]]
-name = "candidate-zero"
+name = "candidatezero"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

@@ -1,5 +1,5 @@
 [project]
-name = "candidate-zero"
+name = "candidatezero"
 version = "0.1.0"
 description = "Watches company ATS boards overnight and keeps only the GTM engineering and RevOps roles that are verified live on the employer's own system."
 readme = "README.md"

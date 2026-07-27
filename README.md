@@ -1,6 +1,6 @@
-# Candidate Zero
+# CandidateZero
 
-In 2025 a recruiting agency pitched me on a company called Revin. Nothing came of it. No interview, no introduction, nothing. In 2026 I applied to Revin directly and made it to the final round, reference checks and all. Same candidate, same company. The only variable was the middleman. So I audited six years of my Gmail: more than a dozen third-party recruiter contacts since 2020, zero interviews, zero placements. Every interview I have ever landed came from a direct application or a warm introduction. Candidate Zero is the tool recruiters pretended to be. It watches company ATS boards overnight, keeps only the GTM engineering and RevOps roles that are verified live on the employer's own system, filters them against real pay data, and tells you who actually owns the hire. It never applies for you. It arms you, and you take the shot.
+In 2025 a recruiting agency pitched me on a company called Revin. Nothing came of it. No interview, no introduction, nothing. In 2026 I applied to Revin directly and made it to the final round, reference checks and all. Same candidate, same company. The only variable was the middleman. So I audited six years of my Gmail: more than a dozen third-party recruiter contacts since 2020, zero interviews, zero placements. Every interview I have ever landed came from a direct application or a warm introduction. CandidateZero is the tool recruiters pretended to be. It watches company ATS boards overnight, keeps only the GTM engineering and RevOps roles that are verified live on the employer's own system, filters them against real pay data, and tells you who actually owns the hire. It never applies for you. It arms you, and you take the shot.
 
 ## What it does tonight
 

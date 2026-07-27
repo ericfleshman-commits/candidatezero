@@ -201,7 +201,7 @@ def cmd_newsletter(args: argparse.Namespace) -> int:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="engine",
-        description="candidate-zero: watch ATS boards, keep only what is verified live.",
+        description="candidatezero: watch ATS boards, keep only what is verified live.",
     )
     parser.add_argument(
         "--delay",

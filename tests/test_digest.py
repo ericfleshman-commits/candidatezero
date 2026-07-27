@@ -44,7 +44,7 @@ def _result() -> RunResult:
 def test_digest_prints_kept_roles_in_full():
     body = render(_result(), run_date=datetime(2026, 7, 16).date())
 
-    assert "# Candidate Zero digest 2026-07-16" in body
+    assert "# CandidateZero digest 2026-07-16" in body
     assert "Manifest: GTM Engineer" in body
     assert "$160,000 to $230,000" in body
     assert "structured" in body

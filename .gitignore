@@ -16,6 +16,7 @@ logs/
 done/
 sprints/
 overnight*.sh
+nightly.sh
 kickoff.sh
 dash.sh
 feed.sh

@@ -260,10 +260,18 @@ def _probe_smartrecruiters(slug: str, client: PoliteClient) -> Probe:
 
 def _probe_workday(slug: str, client: PoliteClient) -> Probe:
     tenant, wd, site = split_slug(slug)
-    payload = client.post_json(
-        WORKDAY_API.format(tenant=tenant, n=wd, site=site),
-        json={"appliedFacets": {}, "limit": 3, "offset": 0, "searchText": ""},
-    )
+    try:
+        payload = client.post_json(
+            WORKDAY_API.format(tenant=tenant, n=wd, site=site),
+            json={"appliedFacets": {}, "limit": 3, "offset": 0, "searchText": ""},
+        )
+    except OrgUnavailable as exc:
+        # Workday answers 422, not 404, for a site name that does not exist on
+        # the tenant. Verified live 2026-07-26 against apttus.wd5/External. A
+        # 422 is a verdict about the slug, not a bad moment on the host.
+        if "HTTP 422" in str(exc):
+            raise OrgNotFound(f"workday answers 422 for an unknown site: {slug}") from exc
+        raise
     total = int(payload.get("total") or 0)
     return Probe(
         status="ok",

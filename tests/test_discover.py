@@ -215,6 +215,18 @@ def test_probe_workday_rejects_a_bare_slug(client):
 
 
 @respx.mock
+def test_probe_workday_reads_422_as_no_such_site(client):
+    """Workday's cxs answers 422 for a site that does not exist on the tenant.
+    Verified live 2026-07-26. That is a dead board, not a retryable error."""
+    respx.post("https://apttus.wd5.myworkdayjobs.com/wday/cxs/apttus/External/jobs").mock(
+        return_value=httpx.Response(422)
+    )
+    probe = probe_org("workday", "apttus.wd5/External", client)
+    assert probe.status == "404"
+    assert "422" in probe.detail
+
+
+@respx.mock
 def test_probe_never_raises(client):
     respx.get(POSTINGS_URL.format(slug="flaky")).mock(side_effect=httpx.ConnectTimeout("boom"))
     assert probe_org("lever", "flaky", client).status == "error"

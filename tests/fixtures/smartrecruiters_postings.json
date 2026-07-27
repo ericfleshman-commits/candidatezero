@@ -1,0 +1,154 @@
+{
+ "offset": 0,
+ "limit": 100,
+ "totalFound": 5,
+ "content": [
+  {
+   "id": "744000138728139",
+   "name": "Data Science Intern | Fully Remote US",
+   "uuid": "ac49e1ca-2d73-4c53-8b00-6bb93d4de203",
+   "jobAdId": "fe567f75-d30d-4a8e-8996-3cb23d9e71e2",
+   "defaultJobAd": true,
+   "refNumber": "REF307T",
+   "company": {
+    "identifier": "HireVue",
+    "name": "HireVue Inc"
+   },
+   "releasedDate": "2026-07-20T20:54:18.136Z",
+   "location": {
+    "city": "Sandy",
+    "region": "UT",
+    "country": "us",
+    "remote": true,
+    "hybrid": false,
+    "latitude": "40.5649781",
+    "longitude": "-111.8389726",
+    "fullLocation": "Sandy, UT, United States"
+   },
+   "industry": {
+    "id": "computer_software",
+    "label": "Computer Software"
+   },
+   "department": {
+    "id": "2802610",
+    "label": "Data Science"
+   },
+   "function": {
+    "id": "other",
+    "label": "Other"
+   },
+   "typeOfEmployment": {
+    "id": "part-time",
+    "label": "Part-time"
+   },
+   "experienceLevel": {
+    "id": "internship",
+    "label": "Internship"
+   },
+   "visibility": "PUBLIC",
+   "ref": "https://api.smartrecruiters.com/v1/companies/hirevue/postings/744000138728139",
+   "language": {
+    "code": "en",
+    "label": "English",
+    "labelNative": "English (US)"
+   }
+  },
+  {
+   "id": "744000136509359",
+   "name": "Deal Desk Analyst | Fully Remote Poland and UK",
+   "uuid": "32d82b13-fb5c-4768-ab0c-ab8a141329f7",
+   "jobAdId": "bc1d537a-c8e8-4c21-b383-3dc0f56a6b89",
+   "defaultJobAd": true,
+   "refNumber": "REF298F",
+   "company": {
+    "identifier": "HireVue",
+    "name": "HireVue Inc"
+   },
+   "releasedDate": "2026-07-08T15:38:38.357Z",
+   "location": {
+    "city": "Warsaw",
+    "country": "pl",
+    "remote": true,
+    "hybrid": false,
+    "fullLocation": "Warsaw, , Poland"
+   },
+   "industry": {
+    "id": "computer_software",
+    "label": "Computer Software"
+   },
+   "department": {
+    "id": "2749672",
+    "label": "Sales"
+   },
+   "function": {
+    "id": "sales",
+    "label": "Sales"
+   },
+   "typeOfEmployment": {
+    "id": "permanent",
+    "label": "Full-time"
+   },
+   "experienceLevel": {
+    "id": "associate",
+    "label": "Associate"
+   },
+   "visibility": "PUBLIC",
+   "ref": "https://api.smartrecruiters.com/v1/companies/hirevue/postings/744000136509359",
+   "language": {
+    "code": "en",
+    "label": "English",
+    "labelNative": "English (US)"
+   }
+  },
+  {
+   "id": "744000133640099",
+   "name": "Implementation Manager | Fully Remote Poland",
+   "uuid": "f4a86bbf-8c7e-424a-80e5-803bcf6fcc27",
+   "jobAdId": "68ac4996-252a-4e31-845d-4a245c116dcb",
+   "defaultJobAd": true,
+   "refNumber": "REF301E",
+   "company": {
+    "identifier": "HireVue",
+    "name": "HireVue Inc"
+   },
+   "releasedDate": "2026-06-23T15:31:20.992Z",
+   "location": {
+    "city": "Warsaw",
+    "region": "Masovian Voivodeship",
+    "country": "pl",
+    "remote": true,
+    "hybrid": false,
+    "latitude": "52.2296756",
+    "longitude": "21.0122287",
+    "fullLocation": "Warsaw, Masovian Voivodeship, Poland"
+   },
+   "industry": {
+    "id": "computer_software",
+    "label": "Computer Software"
+   },
+   "department": {
+    "id": "2749689",
+    "label": "Professional Services"
+   },
+   "function": {
+    "id": "consulting",
+    "label": "Consulting"
+   },
+   "typeOfEmployment": {
+    "id": "permanent",
+    "label": "Full-time"
+   },
+   "experienceLevel": {
+    "id": "associate",
+    "label": "Associate"
+   },
+   "visibility": "PUBLIC",
+   "ref": "https://api.smartrecruiters.com/v1/companies/hirevue/postings/744000133640099",
+   "language": {
+    "code": "en",
+    "label": "English",
+    "labelNative": "English (US)"
+   }
+  }
+ ]
+}

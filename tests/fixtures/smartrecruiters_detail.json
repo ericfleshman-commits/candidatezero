@@ -1,0 +1,74 @@
+{
+ "id": "744000138728139",
+ "name": "Data Science Intern | Fully Remote US",
+ "uuid": "ac49e1ca-2d73-4c53-8b00-6bb93d4de203",
+ "jobId": "429dc926-22d8-448b-93b3-85207b301408",
+ "jobAdId": "fe567f75-d30d-4a8e-8996-3cb23d9e71e2",
+ "defaultJobAd": true,
+ "refNumber": "REF307T",
+ "company": {
+  "name": "HireVue Inc",
+  "identifier": "HireVue"
+ },
+ "location": {
+  "city": "Sandy",
+  "region": "UT",
+  "country": "us",
+  "remote": true,
+  "hybrid": false,
+  "latitude": "40.5649781",
+  "longitude": "-111.8389726",
+  "fullLocation": "Sandy, UT, United States"
+ },
+ "releasedDate": "2026-07-20T20:54:18.136Z",
+ "postingUrl": "https://jobs.smartrecruiters.com/HireVue/744000138728139-data-science-intern-fully-remote-us",
+ "applyUrl": "https://jobs.smartrecruiters.com/HireVue/744000138728139-data-science-intern-fully-remote-us?oga=true",
+ "referralUrl": "https://jobs.smartrecruiters.com/external-referrals/company/HireVue/publication/ac49e1ca-2d73-4c53-8b00-6bb93d4de203?dcr_ci=HireVue",
+ "jobAd": {
+  "sections": {
+   "companyDescription": {
+    "title": "Company Description",
+    "text": "<p>Hirevue is where hiring happens \u2013 transforming the way organizations discover, engage, and hire the best talent. Connecting companies and candidates anytime, anywhere, Hirevue\u2019s end-to-end hiring platform features video interviewing, assessments and conversational AI. The industry leader in science backed, modern hiring solutions powered by ethical AI,&#xa0;Hirevue has hosted more than 70 milli"
+   },
+   "jobDescription": {
+    "title": "Job Description",
+    "text": "<p>As a <strong>Data Science Intern</strong>, you will support ongoing research initiatives that keep our enterprise products and our clients' hiring processes on the absolute cutting edge and leverage machine learning to shape the future of hiring.</p><p>Partnering closely with our world-class data scientists and cross-functional partners in Product Science and Product and Technology, you will ha"
+   },
+   "qualifications": {
+    "title": "Qualifications",
+    "text": "<p><strong>Required</strong></p><ul><li><p>Bachelor\u2019s degree required, with a Master\u2019s degree or PhD in progress in a quantitative/programming field (Computer Science, Statistics, Mathematics, Engineering, Psychology, Economics, Data Science, or related)</p></li><li><p>Understanding of statistics, machine learning, and deep learning fundamentals</p></li><li><p>Proficiency in Python, including comm"
+   },
+   "additionalInformation": {
+    "title": "Additional Information",
+    "text": "<p>All team members at Hirevue are expected to embody our core values, which are the H.E.A.R.T. of Hirevue. They are: Hero for our Customers, Enjoy the Journey, Always do the Right Thing, Reach Forwards, and Take Action and Go.&#xa0;</p><p>Hirevue takes security seriously and has measures in place to protect work-related data in a remote setting. Our organization has implemented a BYOD (Bring Your"
+   }
+  }
+ },
+ "active": true,
+ "visibility": "PUBLIC",
+ "industry": {
+  "id": "computer_software",
+  "label": "Computer Software"
+ },
+ "function": {
+  "id": "other",
+  "label": "Other"
+ },
+ "department": {
+  "id": 2802610,
+  "label": "Data Science"
+ },
+ "experienceLevel": {
+  "id": "internship",
+  "label": "Internship"
+ },
+ "typeOfEmployment": {
+  "id": "part-time",
+  "label": "Part-time"
+ },
+ "language": {
+  "code": "en",
+  "label": "English",
+  "labelNative": "English (US)"
+ }
+}

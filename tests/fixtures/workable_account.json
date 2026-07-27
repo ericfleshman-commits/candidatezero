@@ -1,0 +1,126 @@
+{
+ "name": "CrewAI",
+ "description": "<p>The leading AI automation suite that enables enterprises to orchestrate Agents at Scale</p>",
+ "jobs": [
+  {
+   "title": "Customer Success Manager, LATAM",
+   "shortcode": "3862836931",
+   "code": "",
+   "employment_type": "Full-time",
+   "telecommuting": true,
+   "department": "Support",
+   "url": "https://apply.workable.com/j/3862836931",
+   "shortlink": "https://apply.workable.com/j/3862836931",
+   "application_url": "https://apply.workable.com/j/3862836931/apply",
+   "published_on": "2026-06-30",
+   "created_at": "2026-06-30",
+   "country": "Brazil",
+   "city": "S\u00e3o Paulo",
+   "state": "State of S\u00e3o Paulo",
+   "education": "",
+   "experience": "Mid-Senior level",
+   "function": "Sales",
+   "industry": "Computer Software",
+   "locations": [
+    {
+     "country": "Brazil",
+     "countryCode": "BR",
+     "city": "S\u00e3o Paulo",
+     "region": "State of S\u00e3o Paulo",
+     "hidden": false
+    }
+   ],
+   "description": "<p>About the Role</p><p>As a Customer Success Manager, LATAM at CrewAI, you will be the strategic partner for our growing portfolio of enterprise customers across Brazil and Latin America. You will own the customer relationship from onboarding through renewal and expansion \u2014 becoming a trusted advisor who helps organizations translate their AI investments into measurable business outcomes. This is"
+  },
+  {
+   "title": "Forward Deployed Engineer - (East coast based)",
+   "shortcode": "96051E9EDE",
+   "code": "",
+   "employment_type": "Full-time",
+   "telecommuting": true,
+   "department": "Support",
+   "url": "https://apply.workable.com/j/96051E9EDE",
+   "shortlink": "https://apply.workable.com/j/96051E9EDE",
+   "application_url": "https://apply.workable.com/j/96051E9EDE/apply",
+   "published_on": "2026-04-09",
+   "created_at": "2026-04-09",
+   "country": "United States",
+   "city": "",
+   "state": "",
+   "education": "",
+   "experience": "Mid-Senior level",
+   "function": "Sales",
+   "industry": "Computer Software",
+   "locations": [
+    {
+     "country": "United States",
+     "countryCode": "US",
+     "city": "",
+     "region": null,
+     "hidden": false
+    }
+   ],
+   "description": "<h3>Overview</h3><p>The Forward Deployed Engineer (FDE) at CrewAI is a pivotal, customer-facing role that bridges the gap between our cutting-edge AI technology and our clients' specific needs. We are looking for a hybrid technical expert and strategic consultant who can not only implement our solutions but also understand the business context to ensure successful integration, adoption, and value "
+  },
+  {
+   "title": "Full-Stack Engineer, Agent Management Platform",
+   "shortcode": "0AB5665160",
+   "code": "",
+   "employment_type": "Full-time",
+   "telecommuting": false,
+   "department": "Engineering",
+   "url": "https://apply.workable.com/j/0AB5665160",
+   "shortlink": "https://apply.workable.com/j/0AB5665160",
+   "application_url": "https://apply.workable.com/j/0AB5665160/apply",
+   "published_on": "2026-06-26",
+   "created_at": "2026-06-26",
+   "country": "United States",
+   "city": "San Francisco",
+   "state": "California",
+   "education": "",
+   "experience": "Mid-Senior level",
+   "function": "Engineering",
+   "industry": "Computer Software",
+   "locations": [
+    {
+     "country": "United States",
+     "countryCode": "US",
+     "city": "San Francisco",
+     "region": "California",
+     "hidden": false
+    }
+   ],
+   "description": "<h3>About CrewAI</h3><p>CrewAI is the leading framework and enterprise platform for building and orchestrating multi-agent AI systems, powering 300M+ agent executions per month across thousands of companies. The Agent Management Platform is our control plane for deploying, monitoring, governing, and scaling agents in production.</p><h3>The Role</h3><p>You'll build the CrewAI Agent Management Platf"
+  },
+  {
+   "title": "Senior Support Engineer",
+   "shortcode": "B778F12851",
+   "code": "",
+   "employment_type": "Full-time",
+   "telecommuting": true,
+   "department": "Support",
+   "url": "https://apply.workable.com/j/B778F12851",
+   "shortlink": "https://apply.workable.com/j/B778F12851",
+   "application_url": "https://apply.workable.com/j/B778F12851/apply",
+   "published_on": "2026-06-26",
+   "created_at": "2026-06-26",
+   "country": "United States",
+   "city": "",
+   "state": "",
+   "education": "",
+   "experience": "Mid-Senior level",
+   "function": "Engineering",
+   "industry": "Computer Software",
+   "locations": [
+    {
+     "country": "United States",
+     "countryCode": "US",
+     "city": "",
+     "region": null,
+     "hidden": false
+    }
+   ],
+   "description": "<p>About CrewAI</p><p>CrewAI is the leading framework and enterprise platform for building and orchestrating multi-agent AI systems, powering 300M+ agent executions per month across thousands of companies and a large open-source community. As we scale, great technical support is what keeps enterprise customers successful and keeps our engineers focused on building. This role owns that.</p><p></p><"
+  }
+ ]
+}

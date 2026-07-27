@@ -343,3 +343,39 @@ def test_suppression_holds_on_every_run_not_just_the_first(
 
     assert first.suppressed and len(second.suppressed) == len(first.suppressed)
     assert second.kept == [] and second.flagged == [] and second.still_open == 0
+
+
+@respx.mock
+def test_public_store_is_fed_before_any_private_filtering(
+    ashby_board, filters_cfg, client, tmp_path
+):
+    """The board's product decision, enforced at the pipeline seam.
+
+    A history ruling suppresses Wealth.com's roles from the private digest, but
+    the public store must still hold them: its only editorial rule is the title
+    family. What it must NOT hold is the off-family role, or one byte of the
+    private machinery (flags, statuses, reasons).
+    """
+    from engine.dedupe import HistoryConfig, HistoryEntry
+
+    respx.get(ASHBY).mock(return_value=httpx.Response(200, json=ashby_board))
+    respx.head(url__regex=r"https://jobs\.ashbyhq\.com/.*").mock(return_value=httpx.Response(200))
+    history = HistoryConfig(entries=[HistoryEntry(company="Wealth.com", status="blacklist")])
+
+    result = run_pipeline(
+        _ashby_only(filters_cfg), client, root=tmp_path, use_state=True, history=history
+    )
+    assert result.suppressed  # the private pipeline did suppress everything
+
+    from engine.public_store import PublicStore
+
+    store = PublicStore.load(tmp_path / "data" / "public-roles.jsonl")
+    titles = {r.title for r in store.open_roles()}
+    # Both title-matched roles are listed despite the blacklist.
+    assert titles == {"GTM Engineer", "Revenue Systems Engineer"}
+    # The off-family roles never entered.
+    assert "Technical Support Associate" not in titles
+    # And nothing private is in the file, not even as residue.
+    body = (tmp_path / "data" / "public-roles.jsonl").read_text(encoding="utf-8")
+    for marker in ("blacklist", "suppress", "band-top-only", "history", "flag"):
+        assert marker not in body

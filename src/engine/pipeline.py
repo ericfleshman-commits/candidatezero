@@ -21,6 +21,7 @@ from engine.config import CompanyEntry, Config, data_dir
 from engine.dedupe import Deduper, HistoryConfig
 from engine.filters import FilterEngine
 from engine.models import OrgWarning, Role, RunResult, SuppressedRole
+from engine.public_store import PublicStore
 from engine.registry import Registry
 from engine.sourcers.ashby import AshbySourcer
 from engine.sourcers.base import OrgNotFound, OrgUnavailable, PoliteClient
@@ -150,6 +151,21 @@ def run_pipeline(
         new_ids, closed_entries = store.reconcile(all_roles, scanned_org_keys, now=stamp)
         if not first_run:
             result.closed = [f"{e.company_name}: {e.title} ({e.url})" for e in closed_entries]
+
+        # The public listing store is fed here, on purpose before any private
+        # filtering. The board's only editorial rule is the title-family match;
+        # everything below this block (comp floor, location rules, history,
+        # flags) is the operator's private taste and must never shape what the
+        # public store holds, because a public listing that mirrored those
+        # exclusions would leak them.
+        public_path = data_dir(root) / "public-roles.jsonl"
+        public_store = PublicStore.load(public_path)
+        public_store.reconcile(
+            [r for r in all_roles if filters.title_family(r) is not None],
+            scanned_org_keys,
+            now=stamp,
+        )
+        public_store.save(public_path)
 
     # Funnel stages 1 to 3: title, then location, then comp. FilterEngine
     # evaluates in exactly that order and its drop reason names the stage that

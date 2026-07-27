@@ -321,9 +321,16 @@ def test_band_fully_above_the_floor_is_a_clean_pass(engine):
     assert role.flags == []
 
 
-def test_band_top_only_is_kept_and_flagged(engine):
-    """130k to 180k against a 160k floor. The job might pay enough. Surface it."""
-    role = make_role(comp=CompRange(min=130000, max=180000, source="structured"))
+def test_band_top_only_is_kept_and_flagged(engine, filters_cfg):
+    """A band straddling the floor. The job might pay enough, so surface it.
+
+    Derived from the config rather than hardcoded, so changing the shipped
+    example floor can never silently invalidate this test.
+    """
+    floor = filters_cfg.comp.floor_usd
+    role = make_role(
+        comp=CompRange(min=floor - 30000, max=floor + 20000, source="structured")
+    )
     verdict = engine.evaluate(role)
 
     assert verdict.decision == "flag"
@@ -359,10 +366,13 @@ def test_a_big_enough_band_buys_back_a_location_miss(engine):
     assert "location-exception-comp" in role.flags
 
 
-def test_the_exception_does_not_rescue_an_ordinary_band(engine):
+def test_the_exception_does_not_rescue_an_ordinary_band(engine, filters_cfg):
+    """Clears the floor, misses the location exception. Still dropped."""
+    floor = filters_cfg.comp.floor_usd
+    exception = filters_cfg.location.kill_exception_comp_usd
     role = make_role(
         location_raw="San Francisco",
-        comp=CompRange(min=165000, max=180000, source="structured"),
+        comp=CompRange(min=floor + 5000, max=exception - 5000, source="structured"),
     )
     assert engine.evaluate(role).decision == "drop"
 

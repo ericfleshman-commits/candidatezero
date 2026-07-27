@@ -48,7 +48,7 @@ location:
   # Optional escape hatch: a role that fails location is kept and flagged rather
   # than dropped when the top of its band clears this number. Money moves people.
   # Remove the key to disable the exception entirely.
-  kill_exception_comp_usd: 200000
+  kill_exception_comp_usd: 175000  # example value; set your real one in config/private/
 
 comp:
   # Pass if comp_max is at or above the floor.
@@ -57,7 +57,7 @@ comp:
   #   no comp published           : kept, flagged comp-unknown
   # Unknown comp is a flag and not a failure. The NYC pay transparency law means
   # most target roles post a band, so a missing band is a question, not a no.
-  floor_usd: 160000
+  floor_usd: 125000  # example value; set your real one in config/private/
 
 # Shape rule packs: what the role actually is, read from the JD itself. A title
 # can say GTM Engineer while the description asks for a React frontend engineer;

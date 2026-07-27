@@ -18,6 +18,7 @@ from engine.registry import OrgRecord, Registry
 from engine.sourcers.ashby import BOARD_URL
 from engine.sourcers.greenhouse import LIST_URL
 from engine.sourcers.lever import POSTINGS_URL
+from engine.sourcers.workday import JOBS_URL as WORKDAY_JOBS
 
 ASHBY = BOARD_URL.format(slug="wealth-com")
 GH = LIST_URL.format(slug="gongio")
@@ -148,9 +149,13 @@ def test_registry_orgs_are_scanned_alongside_the_pins(ashby_board, filters_cfg, 
         tmp_path,
         OrgRecord(vendor="lever", slug="outreach", company_name="Outreach"),
         OrgRecord(vendor="ashby", slug="wealth-com"),  # also pinned; must not scan twice
-        OrgRecord(vendor="workday", slug="acme.wd1/Ext", company_name="Acme"),  # no harvester
+        # Harvested since sprint 19: a live workday org is scanned, not skipped.
+        OrgRecord(vendor="workday", slug="acme.wd1/Ext", company_name="Acme"),
     )
     respx.get(ASHBY).mock(return_value=httpx.Response(200, json=ashby_board))
+    respx.post(WORKDAY_JOBS.format(tenant="acme", n="1", site="Ext")).mock(
+        return_value=httpx.Response(200, json={"total": 0, "jobPostings": []})
+    )
     lever_route = respx.get(POSTINGS_URL.format(slug="outreach")).mock(
         return_value=httpx.Response(
             200,
@@ -175,9 +180,9 @@ def test_registry_orgs_are_scanned_alongside_the_pins(ashby_board, filters_cfg, 
         _ashby_only(filters_cfg), client, root=tmp_path, use_state=False, registry=reg
     )
 
-    assert result.orgs_scanned == 2  # wealth-com once, outreach once
+    assert result.orgs_scanned == 3  # wealth-com once, outreach once, the quiet workday board
     assert result.orgs_live == 3
-    assert result.orgs_without_harvester == 1
+    assert result.orgs_without_harvester == 0
     assert lever_route.call_count == 1
     assert "Outreach" in {r.company_name for r in result.kept + result.flagged}
 

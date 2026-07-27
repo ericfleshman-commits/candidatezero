@@ -26,12 +26,23 @@ from engine.sourcers.ashby import AshbySourcer
 from engine.sourcers.base import OrgNotFound, OrgUnavailable, PoliteClient
 from engine.sourcers.greenhouse import GreenhouseSourcer
 from engine.sourcers.lever import LeverSourcer
+from engine.sourcers.smartrecruiters import SmartRecruitersSourcer
+from engine.sourcers.workable import WorkableSourcer
+from engine.sourcers.workday import WorkdaySourcer
 from engine.state import SeenStore
 from engine.verify import verify
 
 # The vendors this engine can harvest tonight. The registry tracks more; a
-# live workday org waits in the registry until its harvester exists.
-HARVESTED_VENDORS: tuple[str, ...] = ("ashby", "greenhouse", "lever")
+# live org on any other vendor waits in the registry until its harvester
+# exists, and orgs_without_harvester counts the wait.
+HARVESTED_VENDORS: tuple[str, ...] = (
+    "ashby",
+    "greenhouse",
+    "lever",
+    "workable",
+    "smartrecruiters",
+    "workday",
+)
 
 
 def build_sourcers(client: PoliteClient) -> dict:
@@ -39,6 +50,9 @@ def build_sourcers(client: PoliteClient) -> dict:
         "ashby": AshbySourcer(client),
         "greenhouse": GreenhouseSourcer(client),
         "lever": LeverSourcer(client),
+        "workable": WorkableSourcer(client),
+        "smartrecruiters": SmartRecruitersSourcer(client),
+        "workday": WorkdaySourcer(client),
     }
 
 

@@ -67,7 +67,7 @@ class BoardReport(BaseModel):
     closed_recently: list[BoardRow] = Field(default_factory=list)
 
 
-def _location(entry: PublicRole) -> str:
+def location_label(entry: PublicRole) -> str:
     loc = entry.location or "not stated"
     if entry.remote and "remote" not in loc.lower():
         loc += " (remote)"
@@ -83,7 +83,7 @@ def _row(entry: PublicRole, mirrors: int) -> BoardRow:
         company=entry.company,
         title=entry.title,
         comp_band=entry.comp_band,
-        location=_location(entry),
+        location=location_label(entry),
         vendor=VENDOR_LABELS.get(entry.vendor, entry.vendor.title()),
         posted=_day(entry.posted_at),
         url=entry.url,
@@ -137,27 +137,32 @@ def build_report(store: PublicStore, runs: list[dict], now: datetime) -> BoardRe
     return report
 
 
-def _env(template_dir: Path | None = None) -> Environment:
+def html_env(template_dir: Path | None = None) -> Environment:
     # Same strict environment the digest and newsletter share, with HTML
-    # escaping on: company names and titles are third-party text.
+    # escaping on: company names and titles are third-party text. The company
+    # pages render through this too.
     env = template_env(template_dir)
     env.autoescape = True
     return env
 
 
 def render(report: BoardReport, template_dir: Path | None = None) -> str:
-    return _env(template_dir).get_template("board.html.j2").render(report=report)
+    return html_env(template_dir).get_template("board.html.j2").render(report=report)
+
+
+def write_stylesheet(board_dir: Path) -> None:
+    # Strict CSP hosts (the portfolio blocks inline style) need the stylesheet
+    # as a same-origin file, so it ships next to the page every render.
+    css = Path(__file__).resolve().parent.parent.parent / "templates" / "board.css"
+    if css.exists():
+        (board_dir / "board.css").write_text(css.read_text(), encoding="utf-8")
 
 
 def write(report: BoardReport, data_dir: Path) -> Path:
     path = data_dir / "board" / "index.html"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(render(report), encoding="utf-8")
-    # Strict CSP hosts (the portfolio blocks inline style) need the stylesheet
-    # as a same-origin file, so it ships next to the page every render.
-    css = Path(__file__).resolve().parent.parent.parent / "templates" / "board.css"
-    if css.exists():
-        (path.parent / "board.css").write_text(css.read_text(), encoding="utf-8")
+    write_stylesheet(path.parent)
     return path
 
 

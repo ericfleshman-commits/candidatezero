@@ -1,4 +1,4 @@
-"""Command line: engine run | check-org | digest | newsletter | board | registry.
+"""Command line: engine run | check-org | digest | newsletter | board | pages | registry.
 
 One command, run by cron, writes one file. That is the whole interface. The
 registry subcommands are the exception: they maintain the org registry that
@@ -16,6 +16,7 @@ from pathlib import Path
 from engine import board as board_mod
 from engine import digest as digest_mod
 from engine import newsletter as newsletter_mod
+from engine import pages as pages_mod
 from engine.config import HOST_DELAY_SECONDS, Config, data_dir, load_config
 from engine.dedupe import load_history
 from engine.discover import add_domains, verify_registry
@@ -219,6 +220,29 @@ def cmd_board(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_pages(args: argparse.Namespace) -> int:
+    """One answer page per live org in the registry, plus their index and llms.txt.
+
+    No network, like the board. The pages are the deliverable; publication is
+    someone else's job.
+    """
+    registry = Registry.load(registry_path())
+    if not registry.live():
+        print(f"no live orgs in the registry at {registry.path}. Run: engine registry verify")
+        return 1
+
+    store = PublicStore.load(data_dir() / "public-roles.jsonl")
+    report = pages_mod.build_report(registry.live(), store, now=board_mod.now_utc())
+    path = pages_mod.write(report, data_dir())
+
+    print(
+        f"pages: {len(report.pages)} | hiring: {report.hiring_count} | "
+        f"quiet: {report.quiet_count} | live roles listed: {report.total_roles}"
+    )
+    print(f"companies: {path}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="engine",
@@ -264,6 +288,12 @@ def main(argv: list[str] | None = None) -> int:
         "board", help="write the public verified board page from the public listing store"
     )
     board.set_defaults(func=cmd_board)
+
+    pages = sub.add_parser(
+        "pages",
+        help="write one answer page per live org: is this company hiring GTM engineers right now",
+    )
+    pages.set_defaults(func=cmd_pages)
 
     registry = sub.add_parser("registry", help="maintain the org registry, the engine's real asset")
     reg_sub = registry.add_subparsers(dest="registry_command", required=True)

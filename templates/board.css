@@ -18,6 +18,8 @@
   .wrap { max-width: 1100px; margin: 0 auto; padding: 40px 24px 64px; }
   header h1 { margin: 0 0 4px; font-size: 28px; letter-spacing: -0.01em; }
   .tagline { margin: 0 0 28px; color: var(--text-2); max-width: 62ch; }
+  .answer { font-size: 21px; font-weight: 600; margin: 0 0 12px; max-width: 62ch; }
+  .answer.quiet { color: var(--text-2); }
   .stats { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 40px; }
   .tile {
     background: var(--panel);

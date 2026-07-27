@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Is {{ page.company }} hiring GTM engineers? CandidateZero</title>
+<link rel="stylesheet" href="../../board.css">
+{% if page.jsonld %}
+{# Serialized and script-safe in pages._jsonld; safe only unwraps that. #}
+<script type="application/ld+json">{{ page.jsonld | safe }}</script>
+{% endif %}
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Is {{ page.company }} hiring GTM engineers right now?</h1>
+  {% if page.hiring %}
+  <p class="answer">Yes: {{ page.roles | length }} open GTM/RevOps {{ "role" if page.roles | length == 1 else "roles" }} as of {{ page.as_of }}.</p>
+  {% else %}
+  <p class="answer quiet">No live GTM or RevOps roles verified as of {{ report.generated_day }}.</p>
+  <p class="tagline">Most recent verification of this company's board: {{ page.as_of }}.
+  When a matching role appears there, it will be listed here the night it is found.</p>
+  {% endif %}
+</header>
+<main>
+{% if page.hiring %}
+<section>
+  <h2>Verified live roles <span class="count">{{ page.roles | length }}</span></h2>
+  <div class="scroll">
+  <table>
+    <thead>
+      <tr><th>Role</th><th>Comp</th><th>Location</th><th>Posted</th><th></th></tr>
+    </thead>
+    <tbody>
+    {% for row in page.roles %}
+      <tr class="role">
+        <td class="company">{{ row.title }}</td>
+        <td class="num">{{ row.comp_band or "not published" }}</td>
+        <td>{{ row.location }}</td>
+        <td class="num">{{ row.posted }}</td>
+        <td><a href="{{ row.url }}">Apply</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+{% endif %}
+<p class="note">Last checked: {{ page.last_checked }}. See <a href="../../index.html">the full
+verified board</a> or <a href="../index.html">every company watched</a>.</p>
+</main>
+<footer>
+  <p>Every listing on CandidateZero is re-verified on the employer's own applicant tracking
+  system during the most recent nightly run. The engine never applies for anyone.</p>
+  <p class="note">Generated {{ report.generated }}. Apply links go straight to the employer,
+  never through an aggregator.</p>
+</footer>
+</div>
+</body>
+</html>

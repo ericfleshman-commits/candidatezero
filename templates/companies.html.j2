@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Every company on CandidateZero, the verified GTM jobs board</title>
+<link rel="stylesheet" href="../board.css">
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Every company on the verified board</h1>
+  <p class="tagline">One page per company, each answering the same question from the same
+  nightly verification: is this company hiring GTM engineers right now? Companies hiring
+  now sort first.</p>
+  <div class="stats">
+    <div class="tile"><span class="label">Companies watched</span><span class="value">{{ "{:,}".format(report.pages | length) }}</span></div>
+    <div class="tile"><span class="label">Hiring now</span><span class="value">{{ "{:,}".format(report.hiring_count) }}</span></div>
+    <div class="tile"><span class="label">Live GTM/RevOps roles</span><span class="value">{{ "{:,}".format(report.total_roles) }}</span></div>
+  </div>
+</header>
+<main>
+<section>
+  <div class="scroll">
+  <table>
+    <thead>
+      <tr><th>Company</th><th>Live roles</th><th>Last verified</th></tr>
+    </thead>
+    <tbody>
+    {% for page in report.pages %}
+      <tr class="role">
+        <td class="company"><a href="{{ page.dirname }}/index.html">{{ page.company }}</a></td>
+        <td class="num">{{ page.roles | length }}</td>
+        <td class="num">{{ page.as_of }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+<p class="note">Back to <a href="../index.html">the verified board</a>.</p>
+</main>
+<footer>
+  <p>Every listing on CandidateZero is re-verified on the employer's own applicant tracking
+  system during the most recent nightly run. The engine never applies for anyone.</p>
+  <p class="note">Generated {{ report.generated }}.</p>
+</footer>
+</div>
+</body>
+</html>

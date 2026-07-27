@@ -1,4 +1,4 @@
-"""Command line: engine run | check-org | digest | newsletter | registry.
+"""Command line: engine run | check-org | digest | newsletter | board | registry.
 
 One command, run by cron, writes one file. That is the whole interface. The
 registry subcommands are the exception: they maintain the org registry that
@@ -13,12 +13,14 @@ import time
 from datetime import date
 from pathlib import Path
 
+from engine import board as board_mod
 from engine import digest as digest_mod
 from engine import newsletter as newsletter_mod
 from engine.config import HOST_DELAY_SECONDS, Config, data_dir, load_config
 from engine.dedupe import load_history
 from engine.discover import add_domains, verify_registry
 from engine.pipeline import append_run_record, check_org, run_pipeline
+from engine.public_store import PublicStore
 from engine.registry import VENDORS, Registry, registry_path
 from engine.sourcers.base import PoliteClient
 from engine.state import SeenStore
@@ -198,6 +200,25 @@ def cmd_newsletter(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_board(args: argparse.Namespace) -> int:
+    """The public verified board, from data the nightly runs already wrote.
+
+    No network, like the newsletter. The page is the deliverable; publication
+    is someone else's job.
+    """
+    store = PublicStore.load(data_dir() / "public-roles.jsonl")
+    runs = newsletter_mod.read_runs(data_dir() / "runs.jsonl", date.today())
+    report = board_mod.build_report(store, runs, now=board_mod.now_utc())
+    path = board_mod.write(report, data_dir())
+
+    print(
+        f"live: {report.verified_live} | new this week: {len(report.new_this_week)} | "
+        f"still open: {len(report.still_open)} | closed recently: {len(report.closed_recently)}"
+    )
+    print(f"board: {path}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="engine",
@@ -238,6 +259,11 @@ def main(argv: list[str] | None = None) -> int:
         help="week-ending date, YYYY-MM-DD (default: today; report covers the trailing 7 days)",
     )
     news.set_defaults(func=cmd_newsletter)
+
+    board = sub.add_parser(
+        "board", help="write the public verified board page from the public listing store"
+    )
+    board.set_defaults(func=cmd_board)
 
     registry = sub.add_parser("registry", help="maintain the org registry, the engine's real asset")
     reg_sub = registry.add_subparsers(dest="registry_command", required=True)

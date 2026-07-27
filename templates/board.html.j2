@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CandidateZero, the verified GTM jobs board</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --surface: #1a1a19;
+    --panel: #232322;
+    --border: #383835;
+    --text: #ffffff;
+    --text-2: #c3c2b7;
+    --muted: #8f8e85;
+    --accent: #3987e5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--surface);
+    color: var(--text);
+    font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 40px 24px 64px; }
+  header h1 { margin: 0 0 4px; font-size: 28px; letter-spacing: -0.01em; }
+  .tagline { margin: 0 0 28px; color: var(--text-2); max-width: 62ch; }
+  .stats { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 40px; }
+  .tile {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    min-width: 150px;
+    flex: 1 1 150px;
+  }
+  .tile .label { display: block; font-size: 13px; color: var(--text-2); }
+  .tile .value { display: block; font-size: 26px; font-weight: 600; margin-top: 2px; }
+  .tile .value.small { font-size: 16px; line-height: 2.1; }
+  section { margin-bottom: 44px; }
+  h2 {
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+    margin: 0 0 4px;
+  }
+  h2 .count { color: var(--muted); font-weight: 400; }
+  .empty { color: var(--muted); padding: 12px 0; }
+  .scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    text-align: left;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 10px 12px 6px 0;
+  }
+  td { padding: 10px 12px 10px 0; border-top: 1px solid var(--border); vertical-align: top; }
+  tr:first-child td { border-top: 0; }
+  td.company { font-weight: 600; white-space: nowrap; }
+  td.num { white-space: nowrap; }
+  .note { display: block; font-size: 13px; color: var(--muted); }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover, a:focus { text-decoration: underline; }
+  footer { color: var(--text-2); font-size: 14px; max-width: 70ch; border-top: 1px solid var(--border); padding-top: 20px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>CandidateZero</h1>
+  <p class="tagline">A verified board of GTM engineering, RevOps and revenue systems roles,
+  plus adjacent titles worth a look. One listing rule for everyone alike: the title
+  fits the family and the posting is live on the employer's own applicant tracking system.
+  Comp appears when the employer publishes it.</p>
+  <div class="stats">
+    <div class="tile"><span class="label">Company boards read</span><span class="value">{{ "{:,}".format(report.boards_read) }}</span></div>
+    <div class="tile"><span class="label">Postings read this week</span><span class="value">{{ "{:,}".format(report.postings_read) }}</span></div>
+    <div class="tile"><span class="label">Roles verified live right now</span><span class="value">{{ "{:,}".format(report.verified_live) }}</span></div>
+    <div class="tile"><span class="label">Roles closed this week</span><span class="value">{{ "{:,}".format(report.closed_this_week) }}</span></div>
+    <div class="tile"><span class="label">Last run</span><span class="value small">{{ report.last_run }}</span></div>
+  </div>
+</header>
+<main>
+{% macro open_rows(rows) %}
+<div class="scroll">
+<table>
+  <thead>
+    <tr><th>Company</th><th>Role</th><th>Comp</th><th>Location</th><th>Source</th><th>Posted</th><th></th></tr>
+  </thead>
+  <tbody>
+  {% for row in rows %}
+    <tr class="role">
+      <td class="company">{{ row.company }}</td>
+      <td>{{ row.title }}{% if row.mirrors %}<span class="note">{{ row.mirrors }} duplicate {{ "posting" if row.mirrors == 1 else "postings" }} on other boards collapsed into this one</span>{% endif %}</td>
+      <td class="num">{{ row.comp_band or "not published" }}</td>
+      <td>{{ row.location }}</td>
+      <td>{{ row.vendor }}</td>
+      <td class="num">{{ row.posted }}</td>
+      <td><a href="{{ row.url }}">Apply</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endmacro %}
+<section>
+  <h2>New this week <span class="count">{{ report.new_this_week | length }}</span></h2>
+  {% if report.new_this_week %}
+  {{ open_rows(report.new_this_week) }}
+  {% else %}
+  <p class="empty">No new roles this week. A quiet week is published honestly, not padded.</p>
+  {% endif %}
+</section>
+<section>
+  <h2>Still open <span class="count">{{ report.still_open | length }}</span></h2>
+  {% if report.still_open %}
+  {{ open_rows(report.still_open) }}
+  {% else %}
+  <p class="empty">Nothing carried over from earlier weeks.</p>
+  {% endif %}
+</section>
+<section>
+  <h2>Closed recently <span class="count">{{ report.closed_recently | length }}</span></h2>
+  {% if report.closed_recently %}
+  <p class="note">Roles that disappeared from their employer's board in the last 7 days. If you
+  sent an application to one of these and heard nothing, the silence may not be about you.</p>
+  <div class="scroll">
+  <table>
+    <thead>
+      <tr><th>Company</th><th>Role</th><th>Comp</th><th>Location</th><th>Source</th><th>Posted</th><th>Closed</th></tr>
+    </thead>
+    <tbody>
+    {% for row in report.closed_recently %}
+      <tr class="role">
+        <td class="company">{{ row.company }}</td>
+        <td>{{ row.title }}</td>
+        <td class="num">{{ row.comp_band or "not published" }}</td>
+        <td>{{ row.location }}</td>
+        <td>{{ row.vendor }}</td>
+        <td class="num">{{ row.posted }}</td>
+        <td class="num">{{ row.closed }}, open {{ row.days_open }} {{ "day" if row.days_open == 1 else "days" }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <p class="empty">No roles closed in the last 7 days on the boards we watch.</p>
+  {% endif %}
+</section>
+</main>
+<footer>
+  <p>Every listing above was re-verified on the employer's own applicant tracking system
+  during the most recent nightly run. The engine never applies for anyone.</p>
+  <p class="note">Generated {{ report.generated }}. Apply links go straight to the employer,
+  never through an aggregator.</p>
+</footer>
+</div>
+</body>
+</html>

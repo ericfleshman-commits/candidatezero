@@ -37,6 +37,7 @@ from engine.sourcers.ashby import BOARD_URL as ASHBY_API
 from engine.sourcers.base import OrgNotFound, OrgUnavailable, PoliteClient
 from engine.sourcers.greenhouse import LIST_URL as GREENHOUSE_API
 from engine.sourcers.lever import POSTINGS_URL as LEVER_API
+from engine.sourcers.workday import split_slug
 
 WORKABLE_API = "https://apply.workable.com/api/v1/widget/accounts/{slug}"
 SMARTRECRUITERS_API = "https://api.smartrecruiters.com/v1/companies/{slug}/postings?limit=1"
@@ -258,10 +259,7 @@ def _probe_smartrecruiters(slug: str, client: PoliteClient) -> Probe:
 
 
 def _probe_workday(slug: str, client: PoliteClient) -> Probe:
-    if "/" not in slug or ".wd" not in slug:
-        raise OrgNotFound(f"not a workday tenant/site slug: {slug}")
-    host_part, site = slug.split("/", 1)
-    tenant, wd = host_part.split(".wd", 1)
+    tenant, wd, site = split_slug(slug)
     payload = client.post_json(
         WORKDAY_API.format(tenant=tenant, n=wd, site=site),
         json={"appliedFacets": {}, "limit": 3, "offset": 0, "searchText": ""},

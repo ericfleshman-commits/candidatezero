@@ -91,6 +91,17 @@ and the digest says so rather than pretending the two are the same fact.
   survive title and location, and only those, the engine fetches the posting
   detail and reads the band out of the description prose. Cheap first, expensive
   last: a 102 posting board costs about two extra requests.
+- **Lever** answers one unauthenticated request per org. Some orgs publish a
+  structured band; the rest bury it in prose, and the parser reads both.
+- **Workable** returns every posting with its full description in one request,
+  but publishes no structured comp anywhere, so bands only exist when the org
+  wrote one into the prose.
+- **SmartRecruiters** paginates a public list with no description and no comp;
+  detail fetches follow the Greenhouse pattern, gated on the cheap filters.
+- **Workday** answers a plain public POST per tenant and site, 20 postings a
+  page. The list hides the posting date behind "Posted 3 Days Ago" prose, so
+  the gated detail fetch is also what recovers the real date, the description,
+  and the US pay-transparency band.
 
 ## Manners
 
@@ -100,9 +111,11 @@ of taking down the run at 3am.
 
 ## Status
 
-v0, built in public. Live: Ashby and Greenhouse sourcing, liveness verification,
-config-driven filters, the seen-store, and the digest. Next: dedupe against
-application history, job-description shape rules, Lever, and board scrapers.
+v0, built in public. Live: six-vendor sourcing (Ashby, Greenhouse, Lever,
+Workable, SmartRecruiters, Workday), the self-healing org registry, liveness
+verification, config-driven filters, dedupe against application history,
+job-description shape rules, the seen-store, the digest, and the weekly public
+report. Next: board scrapers and the who-owns-the-hire resolver.
 
 ## License
 

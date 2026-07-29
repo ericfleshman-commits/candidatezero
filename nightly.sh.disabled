@@ -1,0 +1,88 @@
+#!/bin/bash
+# Nightly self-refresh. launchd fires this daily at 07:00; if the laptop was
+# asleep it fires on next wake, and a missed day is acceptable. This script
+# must never hold the machine awake: no caffeinate, no sleep assertions, no
+# background keep-alive of any kind.
+#
+# Flow: engine run, board render, then publish the board to the site repo,
+# but only if the render succeeded AND the board test suite (which contains
+# the privacy firewall test) is green. Any test failure means no publish.
+cd "$(dirname "$0")"
+export PATH="$HOME/.local/bin:$PATH"
+REPO="$(pwd)"
+LOG="$REPO/logs/nightly.log"
+mkdir -p logs
+
+SITE_DIR="$HOME/dev/ericfleshman.com"
+BOARD_DEST="$SITE_DIR/candidatezero/board"
+STAMP="$(date +%Y-%m-%d)"
+
+echo "=== NIGHTLY START $(date) ===" >> "$LOG"
+
+# The engine's own graceful-404 behavior governs failures of individual board
+# fetches; a dead org is a warning line, not a nonzero exit. We record the
+# exit code but do not abort: the board can still render from prior data,
+# and a stale board is fine.
+echo "--- engine run start $(date) ---" >> "$LOG"
+uv run engine run >> "$LOG" 2>&1
+RUN_EXIT=$?
+echo "--- engine run exit=$RUN_EXIT $(date) ---" >> "$LOG"
+
+echo "--- board render start $(date) ---" >> "$LOG"
+uv run engine board >> "$LOG" 2>&1
+BOARD_EXIT=$?
+echo "--- board render exit=$BOARD_EXIT $(date) ---" >> "$LOG"
+
+# Publish gate, fail closed. tests/test_board.py contains the privacy
+# firewall test; if anything in that suite fails, nothing is published.
+PUBLISH=no
+if [ "$BOARD_EXIT" -eq 0 ]; then
+  echo "--- publish gate: pytest tests/test_board.py $(date) ---" >> "$LOG"
+  if uv run pytest tests/test_board.py -q >> "$LOG" 2>&1; then
+    PUBLISH=yes
+  else
+    echo "--- publish gate FAILED: tests red, not publishing $(date) ---" >> "$LOG"
+  fi
+else
+  echo "--- publish gate: board render failed, not publishing $(date) ---" >> "$LOG"
+fi
+
+# Publish only when the site repo is sitting on main. If Eric left it on a
+# WIP branch, committing there would bury the refresh on the wrong branch
+# (it happened on the first acceptance run). A stale site is fine.
+if [ "$PUBLISH" = "yes" ]; then
+  SITE_BRANCH="$(git -C "$SITE_DIR" branch --show-current)"
+  if [ "$SITE_BRANCH" != "main" ]; then
+    echo "--- publish skipped: site repo on branch '$SITE_BRANCH', not main $(date) ---" >> "$LOG"
+    PUBLISH=skipped-branch
+  fi
+fi
+
+if [ "$PUBLISH" = "yes" ]; then
+  # Hard boundary: exactly these two files cross into the site repo, by name.
+  # Nothing else under data/ ever leaves this repo. data/ holds the seen
+  # store, the run log, and digests derived from private filter config; the
+  # privacy firewall only holds if the copy below can never widen to a glob
+  # or a directory. Do not "improve" this into cp -r.
+  cp data/board/index.html "$BOARD_DEST/index.html"
+  cp data/board/board.css "$BOARD_DEST/board.css"
+
+  cd "$SITE_DIR" || exit 0
+  if git status --porcelain -- candidatezero/board/index.html candidatezero/board/board.css | grep -q .; then
+    git add candidatezero/board/index.html candidatezero/board/board.css
+    git commit -m "candidatezero: nightly board refresh $STAMP" >> "$LOG" 2>&1
+    # Push failure (offline, auth, whatever) logs and exits clean. A stale
+    # site is fine; a wedged loop is not.
+    if ! git push >> "$LOG" 2>&1; then
+      echo "--- push failed, commit kept locally, will ride the next push $(date) ---" >> "$LOG"
+    else
+      echo "--- published: board refresh $STAMP pushed $(date) ---" >> "$LOG"
+    fi
+  else
+    echo "--- publish skipped: board unchanged $(date) ---" >> "$LOG"
+  fi
+  cd "$REPO"
+fi
+
+echo "=== NIGHTLY DONE $(date) (run=$RUN_EXIT board=$BOARD_EXIT publish=$PUBLISH) ===" >> "$LOG"
+exit 0

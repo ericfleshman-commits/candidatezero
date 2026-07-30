@@ -23,7 +23,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
-from engine.board import html_env, location_label, write_stylesheet
+from engine.board import BASE_URL, html_env, location_label, write_stylesheet
 from engine.public_store import PublicRole, PublicStore
 from engine.registry import OrgRecord
 
@@ -185,6 +185,30 @@ def render_index(report: PagesReport, template_dir: Path | None = None) -> str:
     return html_env(template_dir).get_template("companies.html.j2").render(report=report)
 
 
+def sitemap_xml(report: PagesReport) -> str:
+    """Standard sitemap at data/board/sitemap.xml, one url per public page.
+
+    A company page's lastmod is its as_of date, the same registry or store
+    verification the page's own headline stands on. The three top pages are
+    regenerated every run and carry the run date. Every loc is built from
+    BASE_URL and a sanitized dirname, so nothing here needs XML escaping.
+    """
+    entries = [
+        (f"{BASE_URL}/", report.generated_day),
+        (f"{BASE_URL}/companies/", report.generated_day),
+        (f"{BASE_URL}/methodology/", report.generated_day),
+    ]
+    entries += [(f"{BASE_URL}/companies/{p.dirname}/", p.as_of) for p in report.pages]
+
+    lines = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ]
+    lines += [f" <url><loc>{loc}</loc><lastmod>{lastmod}</lastmod></url>" for loc, lastmod in entries]
+    lines.append("</urlset>")
+    return "\n".join(lines) + "\n"
+
+
 def llms_txt(report: PagesReport) -> str:
     """The AI-assistant entry point, at data/board/llms.txt."""
     return f"""# CandidateZero
@@ -207,16 +231,21 @@ recent nightly run, and the engine never applies for anyone.
 - Per-company pages at companies/{{vendor}}-{{slug}}/index.html: each answers
   "is this company hiring GTM engineers right now?" from verified data, with
   schema.org JobPosting markup for every live role.
+- [Methodology](methodology/index.html): what "verified live" means, which six
+  hiring systems are checked (Ashby, Greenhouse, Lever, Workable,
+  SmartRecruiters, Workday), and how titles are matched, in plain words.
 
-As of {report.generated}: {len(report.pages)} company boards watched,
-{report.hiring_count} hiring now, {report.total_roles} live GTM/RevOps roles.
+Quotable stat, one line, as of {report.generated}: {len(report.pages)} company
+boards watched, {report.hiring_count} hiring now, {report.total_roles} live
+GTM/RevOps roles verified on the employers' own systems.
 
 Apply links go straight to the employer, never through an aggregator.
+A full URL list with last-verified dates is in sitemap.xml.
 """
 
 
 def write(report: PagesReport, data_dir: Path, template_dir: Path | None = None) -> Path:
-    """Write every page, the index, llms.txt and the shared stylesheet.
+    """Write every page, the index, llms.txt, sitemap.xml and the stylesheet.
 
     The companies tree is rebuilt from scratch each run: these are generated
     files, and a page for an org that has since gone dead must not linger
@@ -241,5 +270,6 @@ def write(report: PagesReport, data_dir: Path, template_dir: Path | None = None)
         env.get_template("companies.html.j2").render(report=report), encoding="utf-8"
     )
     (board_dir / "llms.txt").write_text(llms_txt(report), encoding="utf-8")
+    (board_dir / "sitemap.xml").write_text(sitemap_xml(report), encoding="utf-8")
     write_stylesheet(board_dir)
     return companies

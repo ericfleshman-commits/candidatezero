@@ -97,3 +97,46 @@ def test_every_company_page_footer_links_the_methodology(report):
     for page in report.pages:
         body = pages.render_page(report, page)
         assert 'href="../../methodology/index.html"' in body
+
+
+def test_sitemap_lists_every_public_page_with_lastmod(report):
+    xml = pages.sitemap_xml(report)
+
+    assert xml.startswith('<?xml version="1.0" encoding="UTF-8"?>')
+    assert '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' in xml
+    assert f"<loc>{BASE_URL}/</loc>" in xml
+    assert f"<loc>{BASE_URL}/companies/</loc>" in xml
+    assert f"<loc>{BASE_URL}/methodology/</loc>" in xml
+    # Each company page carries the verification date its headline stands on.
+    assert (
+        f"<url><loc>{BASE_URL}/companies/ashby-acme/</loc>"
+        "<lastmod>2026-07-21</lastmod></url>" in xml
+    )
+    assert (
+        f"<url><loc>{BASE_URL}/companies/greenhouse-quietco/</loc>"
+        "<lastmod>2026-07-20</lastmod></url>" in xml
+    )
+    assert xml.rstrip().endswith("</urlset>")
+    assert xml.count("<url>") == 3 + len(report.pages)
+
+
+def test_llms_txt_names_the_methodology_and_the_quotable_stat(report):
+    text = pages.llms_txt(report)
+
+    assert "(methodology/index.html)" in text
+    for vendor in ("Ashby", "Greenhouse", "Lever", "Workable", "SmartRecruiters", "Workday"):
+        assert vendor in text
+    assert "Quotable stat, one line" in text
+    assert "2 company\nboards watched, 1 hiring now, 2 live" in text
+    assert "sitemap.xml" in text
+
+
+def test_write_lands_the_whole_public_tree(tmp_path, report):
+    pages.write(report, tmp_path)
+
+    board_dir = tmp_path / "board"
+    assert (board_dir / "companies" / "index.html").is_file()
+    assert (board_dir / "companies" / "ashby-acme" / "index.html").is_file()
+    assert (board_dir / "companies" / "greenhouse-quietco" / "index.html").is_file()
+    assert (board_dir / "llms.txt").is_file()
+    assert (board_dir / "sitemap.xml").is_file()

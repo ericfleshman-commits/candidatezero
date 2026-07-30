@@ -195,10 +195,20 @@ def test_no_location_rule_a_remote_lisbon_role_is_listed(body):
 
 def test_stats_panel_counts_from_runs_and_store(body):
     assert "Company boards read" in body and ">8<" in body
-    assert "Postings read this week" in body and ">1,907<" in body
+    assert "Postings read in last run" in body and ">957<" in body
     assert "Roles verified live right now" in body and ">5<" in body
     assert "Roles closed this week" in body and ">1<" in body
     assert "Last run" in body and "2026-07-21" in body
+
+
+def test_postings_stat_is_the_last_run_never_a_weekly_sum(store):
+    """Two runs in one week read mostly the same postings. Summing them once
+    inflated the stat; the board now stands on the most recent run alone."""
+    report = board.build_report(store, _runs(), now=NOW)
+    assert report.postings_read == 957  # not 1,907
+
+    report = board.build_report(store, [], now=NOW)
+    assert report.postings_read == 0
 
 
 def test_closed_section_reports_the_churn(body):

@@ -59,7 +59,7 @@ class BoardReport(BaseModel):
     generated: str
     last_run: str
     boards_read: int = 0
-    postings_read: int = 0
+    postings_read: int = 0  # the most recent run's count, not a weekly sum
     verified_live: int = 0
     closed_this_week: int = 0
     new_this_week: list[BoardRow] = Field(default_factory=list)
@@ -116,7 +116,9 @@ def build_report(store: PublicStore, runs: list[dict], now: datetime) -> BoardRe
         generated=now.strftime("%Y-%m-%d %H:%M UTC"),
         last_run=last_run,
         boards_read=max((r.get("orgs_scanned", 0) for r in runs), default=0),
-        postings_read=sum(r.get("postings_read", 0) for r in runs),
+        # The last run's own count, never a sum: two runs in one week read
+        # mostly the same postings, and adding them would inflate the stat.
+        postings_read=runs[-1].get("postings_read", 0) if runs else 0,
     )
 
     for entry in store.open_roles():

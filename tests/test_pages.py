@@ -91,3 +91,9 @@ def test_quiet_page_og_description_answers_no(report):
         ' verified as of 2026-07-26.">' in body
     )
     assert f'<meta property="og:url" content="{BASE_URL}/companies/greenhouse-quietco/">' in body
+
+
+def test_every_company_page_footer_links_the_methodology(report):
+    for page in report.pages:
+        body = pages.render_page(report, page)
+        assert 'href="../../methodology/index.html"' in body

@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How CandidateZero verifies its listings</title>
+<link rel="stylesheet" href="../board.css">
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>How this board works</h1>
+  <p class="tagline">CandidateZero is a jobs board that checks its own listings.
+  This page explains what that means, in plain words.</p>
+</header>
+<main class="prose">
+<section>
+  <h2>What "verified live" means</h2>
+  <p>Every listing on the board was re-fetched from the employer's own hiring system
+  during the most recent run. Not copied from an aggregator, not scraped from another
+  jobs board, not remembered from last month. The engine goes to the same place your
+  application would go and confirms the posting is still there.</p>
+  <p>When a role stops appearing on the employer's system, it comes off the board the
+  same night and spends a week in the "closed recently" section, so you can see what
+  quietly disappeared.</p>
+</section>
+<section>
+  <h2>Which systems are checked</h2>
+  <p>The engine reads company hiring pages served by six systems: Ashby, Greenhouse,
+  Lever, Workable, SmartRecruiters, and Workday. If a company runs its hiring on one
+  of these, its board can be watched and its listings can be verified.</p>
+</section>
+<section>
+  <h2>How titles are matched</h2>
+  <p>Roles are matched by title family, not by keyword. The board asks whether the
+  title itself names a GTM engineering, RevOps or revenue systems job, the way a
+  person reading it would. A keyword search would drag in every posting that mentions
+  "revenue" somewhere in the text; a family match keeps the board to roles where the
+  title is the job.</p>
+</section>
+<section>
+  <h2>What the board does not show</h2>
+  <p>No personal filters, no application history, no compensation floors. Those belong
+  to individual job seekers and stay private. Everyone who reads this board sees the
+  same listing, built by one public rule: the title fits the family and the posting is
+  live on the employer's own system. Compensation appears only when the employer
+  publishes it, and is never estimated or invented.</p>
+</section>
+<section>
+  <h2>The engine never applies for anyone</h2>
+  <p>Every apply link goes straight to the employer's own posting. The board does not
+  collect resumes, does not forward applications, and does not sit between you and the
+  company in any way. It reads, verifies, and lists. That is all.</p>
+</section>
+<section>
+  <h2>How fresh is this data</h2>
+  <p>Last completed run: {{ report.last_run }}. Each run re-reads every watched
+  company board, so nothing listed as live is older than the most recent run.</p>
+</section>
+</main>
+<footer>
+  <p class="note">Back to <a href="../index.html">the verified board</a> or
+  <a href="../companies/index.html">every company watched</a>.</p>
+  <p class="note">Generated {{ report.generated }}.</p>
+</footer>
+</div>
+</body>
+</html>

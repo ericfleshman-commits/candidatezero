@@ -159,6 +159,10 @@ def render(report: BoardReport, template_dir: Path | None = None) -> str:
     return html_env(template_dir).get_template("board.html.j2").render(report=report)
 
 
+def render_methodology(report: BoardReport, template_dir: Path | None = None) -> str:
+    return html_env(template_dir).get_template("methodology.html.j2").render(report=report)
+
+
 def write_stylesheet(board_dir: Path) -> None:
     # Strict CSP hosts (the portfolio blocks inline style) need the stylesheet
     # as a same-origin file, so it ships next to the page every render.
@@ -171,6 +175,9 @@ def write(report: BoardReport, data_dir: Path) -> Path:
     path = data_dir / "board" / "index.html"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(render(report), encoding="utf-8")
+    methodology = path.parent / "methodology"
+    methodology.mkdir(exist_ok=True)
+    (methodology / "index.html").write_text(render_methodology(report), encoding="utf-8")
     write_stylesheet(path.parent)
     return path
 

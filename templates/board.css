@@ -60,6 +60,7 @@
   td.company { font-weight: 600; white-space: nowrap; }
   td.num { white-space: nowrap; }
   .note { display: block; font-size: 13px; color: var(--muted); }
+  .prose p { color: var(--text-2); max-width: 70ch; margin: 0 0 14px; }
   a { color: var(--accent); text-decoration: none; }
   a:hover, a:focus { text-decoration: underline; }
   footer { color: var(--text-2); font-size: 14px; max-width: 70ch; border-top: 1px solid var(--border); padding-top: 20px; }

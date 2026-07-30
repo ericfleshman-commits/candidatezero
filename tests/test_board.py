@@ -310,3 +310,33 @@ def test_write_lands_at_data_board_index(tmp_path, store):
 
     assert path == tmp_path / "board" / "index.html"
     assert "<!doctype html>" in path.read_text(encoding="utf-8")
+    assert (tmp_path / "board" / "methodology" / "index.html").is_file()
+
+
+def test_methodology_page_states_every_promise(store, filters_cfg):
+    report = board.build_report(store, _runs(), now=NOW)
+    page = board.render_methodology(report)
+
+    # The six systems, by name.
+    for vendor in ("Ashby", "Greenhouse", "Lever", "Workable", "SmartRecruiters", "Workday"):
+        assert vendor in page
+    # Verified live, families not keywords, the not-shown list, the principle.
+    assert "re-fetched from the employer's own hiring system" in page
+    assert "title family, not by keyword" in page
+    assert "No personal filters, no application history, no compensation floors" in page
+    assert "never applies for anyone" in page
+    # Freshness stands on the last run timestamp.
+    assert "Last completed run: 2026-07-21" in page
+    # External stylesheet, no inline styles, house style.
+    assert '<link rel="stylesheet" href="../board.css">' in page
+    assert "style=" not in page
+    for char in (chr(0x2014), chr(0x2192), chr(0x2190), chr(0x21D2)):
+        assert char not in page
+    # Private numbers have no path in: the page renders from the report alone,
+    # and the config's floor value must never surface.
+    floor = f"{filters_cfg.comp.floor_usd:,}"
+    assert floor not in page
+
+
+def test_board_footer_links_the_methodology(body):
+    assert 'href="methodology/index.html"' in body

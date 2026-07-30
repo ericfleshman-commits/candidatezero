@@ -22,6 +22,11 @@ from pydantic import BaseModel, Field
 from engine.digest import template_env
 from engine.public_store import PublicRole, PublicStore
 
+# Where the board lives once published. Used for og:url tags and the sitemap;
+# the pages themselves keep relative links so a local render still works.
+BASE_URL = "https://ericfleshman.com/candidatezero/board"
+OG_IMAGE = "https://ericfleshman.com/og-sunflower.png"
+
 VENDOR_LABELS = {
     "ashby": "Ashby",
     "greenhouse": "Greenhouse",
@@ -145,6 +150,8 @@ def html_env(template_dir: Path | None = None) -> Environment:
     # pages render through this too.
     env = template_env(template_dir)
     env.autoescape = True
+    env.globals["base_url"] = BASE_URL
+    env.globals["og_image"] = OG_IMAGE
     return env
 
 

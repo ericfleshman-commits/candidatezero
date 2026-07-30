@@ -4,6 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Is {{ page.company }} hiring GTM engineers? CandidateZero</title>
+{% if page.hiring %}
+{% set answer_line = "Yes: " ~ (page.roles | length) ~ " open GTM/RevOps " ~ ("role" if page.roles | length == 1 else "roles") ~ " as of " ~ page.as_of ~ "." %}
+{% else %}
+{% set answer_line = "No live GTM or RevOps roles verified as of " ~ report.generated_day ~ "." %}
+{% endif %}
+<meta property="og:title" content="Is {{ page.company }} hiring GTM engineers right now? | CandidateZero">
+<meta property="og:description" content="{{ answer_line }}">
+<meta property="og:url" content="{{ base_url }}/companies/{{ page.dirname }}/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="{{ og_image }}">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="../../board.css">
 {% if page.jsonld %}
 {# Serialized and script-safe in pages._jsonld; safe only unwraps that. #}

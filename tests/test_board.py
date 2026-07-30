@@ -266,6 +266,18 @@ def test_methodology_footer_makes_both_promises(body):
     assert "never applies for anyone" in body
 
 
+def test_board_og_tags_unfurl_the_board(body):
+    assert (
+        '<meta property="og:title" content="CandidateZero, the verified GTM jobs board">'
+        in body
+    )
+    assert 'property="og:description" content="A verified board of GTM engineering' in body
+    assert f'<meta property="og:url" content="{board.BASE_URL}/">' in body
+    assert '<meta property="og:type" content="website">' in body
+    assert f'<meta property="og:image" content="{board.OG_IMAGE}">' in body
+    assert '<meta name="twitter:card" content="summary_large_image">' in body
+
+
 def test_board_obeys_house_style(body):
     for char in (chr(0x2014), chr(0x2192), chr(0x2190), chr(0x21D2)):
         assert char not in body

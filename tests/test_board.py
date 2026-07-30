@@ -340,3 +340,15 @@ def test_methodology_page_states_every_promise(store, filters_cfg):
 
 def test_board_footer_links_the_methodology(body):
     assert 'href="methodology/index.html"' in body
+
+
+def test_stylesheet_keeps_wide_tables_usable_on_small_screens(tmp_path, store):
+    """Under 768px the 7-column table pans sideways inside .scroll, and a
+    visible hint says so. Desktop rules live outside the media query."""
+    report = board.build_report(store, _runs(), now=NOW)
+    board.write(report, tmp_path)
+    css = (tmp_path / "board" / "board.css").read_text(encoding="utf-8")
+
+    assert "overflow-x: auto" in css
+    assert "@media (max-width: 767px)" in css
+    assert "Slide the table sideways" in css

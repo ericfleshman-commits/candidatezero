@@ -64,3 +64,22 @@
   a { color: var(--accent); text-decoration: none; }
   a:hover, a:focus { text-decoration: underline; }
   footer { color: var(--text-2); font-size: 14px; max-width: 70ch; border-top: 1px solid var(--border); padding-top: 20px; }
+  /* Small screens: the wide tables stay full-width inside their .scroll
+     wrapper and pan sideways; a hint line above each says so, because an
+     off-screen column with no cue reads as a missing column. */
+  @media (max-width: 767px) {
+    .wrap { padding: 24px 16px 48px; }
+    header h1 { font-size: 24px; }
+    .stats { gap: 8px; margin-bottom: 28px; }
+    .tile { min-width: 128px; padding: 12px 14px; flex-basis: 128px; }
+    .tile .value { font-size: 22px; }
+    table { font-size: 14px; }
+    th, td { padding-right: 10px; }
+    .scroll::before {
+      content: "Slide the table sideways to see every column";
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      padding: 6px 0;
+    }
+  }
